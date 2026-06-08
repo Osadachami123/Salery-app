@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Monday-Friday Week View</title>
+<title>Salary Tracker | Previous Week + Monday Calendar</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -49,6 +49,7 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .fg label{font-size:.68rem;font-weight:600;color:var(--mu);display:block;margin-bottom:6px;}
 .fg input,.fg select{width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 14px;color:var(--tx);}
+.fg input:focus,.fg select:focus{border-color:var(--ac);outline:none;}
 .btn-save{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:600;padding:12px;border:none;border-radius:14px;cursor:pointer;width:100%;}
 
 /* Weekly Report Card */
@@ -71,6 +72,15 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .del-btn{background:none;border:none;color:var(--red);cursor:pointer;}
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e2a1e;border:1px solid var(--green);color:var(--green);padding:10px 24px;border-radius:40px;opacity:0;transition:all .28s;z-index:999;pointer-events:none;}
 #toast.show{opacity:1;}
+
+/* Calendar input styling - Monday first */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+input[type="date"] {
+  color-scheme: dark;
+}
 </style>
 </head>
 <body>
@@ -106,10 +116,23 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
       <div class="card"><div class="card-label">All Time</div><div class="card-val indigo" id="card-total">—</div></div>
     </div>
     <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">26</span> days</div></div>
-    <div class="cards-grid"><div class="card"><div class="card-label">Streak 🔥</div><div class="card-val indigo" id="card-streak">—</div></div><div class="card"><div class="card-label">Month Bonus</div><div class="card-val amber" id="card-bonus">—</div></div></div>
+    
+    <!-- පහළ grid එකේ Streak තියෙන තැනට Previous Week Salary දානවා -->
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-label">Previous Week Salary</div>
+        <div class="card-val green" id="card-prev-week">—</div>
+        <div class="card-sub" id="card-prev-week-sub">(Monday → Sunday)</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Streak 🔥</div>
+        <div class="card-val indigo" id="card-streak">—</div>
+        <div class="card-sub">consecutive work days</div>
+      </div>
+    </div>
   </div>
 
-  <!-- WEEKLY REPORT - Monday to Sunday -->
+  <!-- WEEKLY REPORT -->
   <div class="tab-panel" id="tab-weekly">
     <div class="weekly-report-card">
       <div class="sec-lbl" style="margin-top:0;">📅 සතියේ පඩිය බලන්න (Monday → Sunday)</div>
@@ -211,7 +234,6 @@ onAuthStateChanged(auth, user => {
     loadRates();
     renderDashboard();
     document.getElementById('att-date').value = new Date().toISOString().slice(0,10);
-    // set default week picker to current week
     const now = new Date();
     const year = now.getFullYear();
     const week = Math.ceil((((now - new Date(year, 0, 1)) / 86400000) + 1) / 7);
@@ -226,12 +248,50 @@ onAuthStateChanged(auth, user => {
 function getWeekStartMonday(date) {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = (day === 0 ? -6 : 1) - day; // Monday = 1, Sunday = 0
+  const diff = (day === 0 ? -6 : 1) - day;
   d.setDate(d.getDate() + diff);
   return new Date(d);
 }
 
-// LOAD RATES
+// HELPER: Get previous week's Monday
+function getPreviousWeekMonday() {
+  const now = new Date();
+  const thisWeekMonday = getWeekStartMonday(now);
+  const prevWeekMonday = new Date(thisWeekMonday);
+  prevWeekMonday.setDate(thisWeekMonday.getDate() - 7);
+  return prevWeekMonday;
+}
+
+// Calculate salary for a specific week (Monday to Sunday)
+function calculateWeekSalary(weekStartDate, records) {
+  let weekTotal = 0;
+  let workDaysCount = 0;
+  let totalOtHours = 0;
+  const weekStart = new Date(weekStartDate);
+  
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    const key = d.toISOString().slice(0,10);
+    const rec = records[key];
+    if (rec) {
+      if (rec.type === 'work') {
+        weekTotal += RATES.daily + (rec.ot || 0) * RATES.ot;
+        workDaysCount++;
+        totalOtHours += rec.ot || 0;
+      } else if (rec.type === 'sunday') {
+        weekTotal += RATES.sunday + (rec.ot || 0) * RATES.ot;
+        totalOtHours += rec.ot || 0;
+      }
+    }
+  }
+  // Add bonus if 6 or more work days (Mon-Sat usually)
+  if (workDaysCount >= 6) {
+    weekTotal += RATES.weekBonus;
+  }
+  return { weekTotal, workDaysCount, totalOtHours };
+}
+
 async function loadRates() {
   const s = await getDoc(doc(db, 'settings', 'rates'));
   if (s.exists()) RATES = { ...RATES, ...s.data() };
@@ -264,7 +324,6 @@ async function getAllAttendance() {
   return map;
 }
 
-// DASHBOARD - with Monday-based week
 async function renderDashboard() {
   const records = await getAllAttendance();
   const today = new Date().toISOString().slice(0,10);
@@ -285,6 +344,10 @@ async function renderDashboard() {
     }
   }
   
+  // PREVIOUS WEEK SALARY (Monday to Sunday)
+  const prevWeekStart = getPreviousWeekMonday();
+  const { weekTotal: prevWeekTotal, workDaysCount: prevWorkDays } = calculateWeekSalary(prevWeekStart, records);
+  
   // THIS MONTH
   const tm = today.slice(0,7);
   let monthTotal = 0, monthWorkDays = 0, monthBonus = 0;
@@ -292,7 +355,6 @@ async function renderDashboard() {
   Object.entries(records).forEach(([d, v]) => {
     if (d.startsWith(tm)) monthRecords[d] = v;
   });
-  // calculate month bonus using Monday-based weeks
   const weeksMap = {};
   Object.entries(monthRecords).forEach(([date, rec]) => {
     if (rec.type === 'work') {
@@ -337,11 +399,21 @@ async function renderDashboard() {
   document.getElementById('card-today').innerHTML = todayRec ? (todayRec.type === 'off' ? 'Off' : `Rs.${todayEarn.toLocaleString()}`) : '—';
   document.getElementById('card-today-sub').innerHTML = todayRec ? (todayRec.ot ? `${todayRec.ot}h OT` : '') : 'Not marked';
   document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
-  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days (Mon-Sun)`;
+  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days`;
   document.getElementById('card-month').innerHTML = `Rs.${monthTotal.toLocaleString()}`;
   document.getElementById('card-month-sub').innerHTML = `${monthWorkDays} days worked`;
   document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
   document.getElementById('card-streak').innerHTML = streak;
+  
+  // Previous Week Card Update
+  if (prevWeekTotal > 0) {
+    document.getElementById('card-prev-week').innerHTML = `Rs.${prevWeekTotal.toLocaleString()}`;
+    document.getElementById('card-prev-week-sub').innerHTML = `${prevWorkDays} days worked (Mon-Sun)`;
+  } else {
+    document.getElementById('card-prev-week').innerHTML = 'Not recorded';
+    document.getElementById('card-prev-week-sub').innerHTML = 'Mark attendance for last week';
+  }
+  
   document.getElementById('card-bonus').innerHTML = monthBonus > 0 ? `Rs.${(monthBonus * RATES.weekBonus).toLocaleString()}` : 'Rs.0';
   
   const pct = Math.min(100, Math.round((monthWorkDays / totalWorkDays) * 100));
@@ -350,13 +422,12 @@ async function renderDashboard() {
   document.getElementById('prog-goal').innerHTML = totalWorkDays;
 }
 
-// WEEKLY REPORT - Monday to Sunday
+// WEEKLY REPORT
 async function loadWeeklyReport() {
   const weekValue = document.getElementById('week-picker').value;
   if (!weekValue) { toast('සතියක් තෝරන්න', true); return; }
   
   const [year, weekNum] = weekValue.split('-W');
-  // Get Monday of that week
   const weekStart = new Date(year, 0, 1 + (parseInt(weekNum) - 1) * 7);
   while (weekStart.getDay() !== 1) weekStart.setDate(weekStart.getDate() - 1);
   
@@ -395,7 +466,6 @@ async function loadWeeklyReport() {
       } else {
         earned = 0;
         type = 'Off';
-        ot = 0;
       }
       totalOtHours += ot;
       weekTotal += earned;
@@ -403,7 +473,6 @@ async function loadWeeklyReport() {
     dayDetails.push({ date, dayName, type, earned, ot });
   }
   
-  // Check bonus (minimum 6 work days in Monday-Sunday week)
   if (workDaysCount >= 6) {
     weekTotal += RATES.weekBonus;
     gotBonus = true;
@@ -428,7 +497,7 @@ async function loadWeeklyReport() {
         </div>
       `).join('')}
     </div>
-    ${gotBonus ? `<div class="badge-bonus" style="margin-top:12px;text-align:center;">🏆 Weekly Bonus added! (6 days worked from Mon-Sat)</div>` : ''}
+    ${gotBonus ? `<div class="badge-bonus" style="margin-top:12px;text-align:center;">🏆 Weekly Bonus added! (6 days worked Mon-Sat)</div>` : ''}
   `;
 }
 
@@ -479,7 +548,7 @@ document.getElementById('btn-save-range').addEventListener('click', async () => 
   renderDashboard();
 });
 
-// HISTORY with day names
+// HISTORY
 async function renderHistory() {
   const records = await getAllAttendance();
   const sorted = Object.entries(records).sort((a,b) => b[0].localeCompare(a[0]));
