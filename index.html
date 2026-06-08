@@ -2,173 +2,156 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Smart Attendance & Earnings</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Sinhala:wght@400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salary Tracker - OT Dropdown Selector</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#05070c;--sur:#0a0f16;--card:#0f1622;--bdr:#1e293b;
-  --ac:#6366f1;--ac2:#f59e0b;--green:#10b981;--red:#f43f5e;
-  --tx:#f1f5f9;--mu:#6b7280;--sm:#94a3b8;
-}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:15px;}
-
-body::before{content:'';position:fixed;inset:0;
-  background:radial-gradient(circle at 20% 30%, rgba(99,102,241,.06), transparent 70%),
-             radial-gradient(circle at 85% 70%, rgba(16,185,129,.04), transparent 65%);
-  pointer-events:none;z-index:0;}
-
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;position:relative;z-index:1;}
-.login-box{background:rgba(15,22,34,.95);backdrop-filter:blur(8px);border:1px solid rgba(99,102,241,.4);border-radius:40px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.6);}
-.login-logo{text-align:center;margin-bottom:32px;}
-.login-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--ac),#8b5cf6);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:1.9rem;margin:0 auto 16px;box-shadow:0 10px 25px -5px rgba(99,102,241,.4);}
-.login-logo h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;}
-.login-logo p{font-size:.82rem;color:var(--mu);margin-top:5px;font-family:'Noto Sans Sinhala',sans-serif;}
-.field{margin-bottom:16px;}
-.field label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sm);margin-bottom:6px;}
-.field input{width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:13px 16px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.92rem;outline:none;transition:all .2s;}
-.field input:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(99,102,241,.2);}
-.btn-primary{width:100%;background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:600;font-size:.95rem;padding:14px;border:none;border-radius:14px;cursor:pointer;transition:opacity .2s,transform .1s;}
-.btn-primary:hover{opacity:.9;} .btn-primary:active{transform:scale(.98);}
-.login-err{color:var(--red);font-size:.8rem;text-align:center;margin-top:10px;}
-
-#app{display:none;position:relative;z-index:1;min-height:100vh;max-width:520px;margin:0 auto;}
-.app-header{position:sticky;top:0;z-index:100;background:rgba(7,9,15,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:60px;}
-.hlogo{display:flex;align-items:center;gap:10px;}
-.hlogo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--ac),#8b5cf6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
-.hlogo span{font-weight:700;font-size:1rem;}
-.logout-btn{background:none;border:1px solid var(--bdr);color:var(--mu);padding:6px 14px;border-radius:10px;cursor:pointer;font-size:.75rem;font-weight:500;transition:all .2s;}
-.logout-btn:hover{border-color:var(--red);color:var(--red);}
-
-.tab-bar{display:flex;padding:0 16px;border-bottom:1px solid var(--bdr);gap:4px;overflow-x:auto;}
-.tab-btn{background:none;border:none;color:var(--mu);font-size:.8rem;font-weight:500;padding:14px 18px;cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;}
-.tab-btn.active{color:var(--ac);border-bottom-color:var(--ac);font-weight:600;}
-.tab-panel{display:none;padding:20px 20px 40px;}
-.tab-panel.active{display:block;animation:fadeUp .22s ease;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-
-.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:16px 18px;position:relative;transition:transform .1s;}
-.card-label{font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin-bottom:8px;}
-.card-val{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:500;line-height:1;}
-.card-val.indigo{color:var(--ac);}
-.card-val.green{color:var(--green);}
-.card-val.amber{color:var(--ac2);}
-.card-val.purple{color:#a855f7;}
-.card-sub{font-size:.7rem;color:var(--mu);margin-top:5px;}
-.card-wide{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:16px 18px;margin-bottom:12px;}
-.progress-bar{height:6px;background:var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:6px;}
-.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ac),var(--green));transition:width .6s;}
-.sec-lbl{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
-.sec-lbl::after{content:'';flex:1;height:1px;background:var(--bdr);}
-
-.form-card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:22px;}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-.fg label{display:block;font-size:.68rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mu);margin-bottom:6px;}
-.fg input,.fg select{width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 14px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;cursor:pointer;}
-.fg input:focus,.fg select:focus{border-color:var(--ac);}
-.ot-select{font-family:'DM Mono',monospace;background:var(--sur);}
-.btn-save{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:600;font-size:.88rem;padding:12px 20px;border:none;border-radius:14px;cursor:pointer;transition:opacity .2s;width:100%;}
-.btn-save:hover{opacity:.88;}
-.range-card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:22px;margin-bottom:12px;}
-.range-preview{margin-top:14px;max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
-.range-day-item{display:flex;align-items:center;justify-content:space-between;font-size:.75rem;padding:8px 12px;border-radius:12px;background:var(--sur);}
-.filter-row{display:flex;gap:8px;margin-bottom:14px;}
-.filter-row select{background:var(--sur);border:1.5px solid var(--bdr);border-radius:12px;padding:8px 12px;color:var(--tx);flex:1;}
-.hist-table{width:100%;border-collapse:collapse;font-size:.8rem;}
-.hist-table th{text-align:left;font-size:.62rem;letter-spacing:.08em;color:var(--mu);padding:10px 8px;border-bottom:1px solid var(--bdr);}
-.hist-table td{padding:10px 8px;border-bottom:1px solid rgba(31,41,55,.6);}
-.del-btn{background:none;border:none;color:var(--bdr);cursor:pointer;font-size:.85rem;padding:4px 8px;border-radius:8px;}
-.del-btn:hover{background:rgba(244,63,94,.1);color:var(--red);}
-.table-wrap{overflow-x:auto;border-radius:20px;border:1px solid var(--bdr);}
-.month-summary{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.05));border:1px solid rgba(99,102,241,.2);border-radius:18px;padding:16px;margin-bottom:14px;display:flex;justify-content:space-between;}
-.ms-label{font-size:.7rem;color:var(--sm);}
-.ms-val{font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;color:var(--ac);}
-.set-card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:22px;}
-.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
-.rate-item label{font-size:.7rem;color:var(--mu);margin-bottom:5px;display:block;}
-.rate-item input{width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:12px;padding:10px 12px;color:var(--ac2);font-family:'DM Mono',monospace;}
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:#1e2a1e;border:1px solid var(--green);color:var(--green);font-weight:600;font-size:.8rem;padding:10px 24px;border-radius:40px;opacity:0;transition:all .28s;z-index:999;pointer-events:none;white-space:nowrap;}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-#toast.err{background:#2a1e1e;border-color:var(--red);color:var(--red);}
+body{
+  background:#05070c;
+  color:#f1f5f9;
+  font-family:'DM Sans',sans-serif;
+  padding:20px;
+  max-width:500px;
+  margin:0 auto;
+}
+.card{
+  background:#0f1622;
+  border:1px solid #1e293b;
+  border-radius:24px;
+  padding:20px;
+  margin-bottom:16px;
+}
+label{
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  color:#94a3b8;
+  display:block;
+  margin-bottom:6px;
+}
+input, select{
+  width:100%;
+  background:#0a0f16;
+  border:1.5px solid #1e293b;
+  border-radius:14px;
+  padding:12px 14px;
+  color:#f1f5f9;
+  font-size:15px;
+  margin-bottom:12px;
+}
+button{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  font-weight:600;
+  padding:12px 20px;
+  border:none;
+  border-radius:14px;
+  width:100%;
+  cursor:pointer;
+}
+.ot-hint{
+  background:#0a0f16;
+  padding:8px 12px;
+  border-radius:12px;
+  font-size:13px;
+  color:#f59e0b;
+  margin-top:4px;
+}
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
 </style>
 </head>
 <body>
 
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo"><div class="login-icon">💰</div><h1>Salary Tracker</h1><p>ඔබේ ගිණුමට ලොගින් වන්න</p></div>
-    <div class="field"><label>Email</label><input type="email" id="em" placeholder="you@email.com"></div>
-    <div class="field"><label>Password</label><input type="password" id="pw" placeholder="••••••••"></div>
-    <button class="btn-primary" id="btn-login">Login</button>
-    <div class="login-err" id="login-err"></div>
-  </div>
+<h1>💰 Salary Tracker</h1>
+<p style="margin-bottom:20px;color:#94a3b8;">✅ දවස + පැය select කරන්න dropdown එකෙන්</p>
+
+<!-- SINGLE DAY MARKING -->
+<div class="card">
+  <h3>📅 එක දවසක් Mark කරන්න</h3>
+  
+  <label>📆 දිනය තෝරන්න</label>
+  <input type="date" id="att-date">
+  
+  <label>📋 වැඩ වර්ගය</label>
+  <select id="att-type">
+    <option value="work">💼 Work Day (සාමාන්‍ය දවස)</option>
+    <option value="sunday">☀️ Sunday (ඉරිදා)</option>
+    <option value="off">😴 Off Day (නිවාඩු)</option>
+  </select>
+  
+  <label>⏰ Overtime පැය ගණන (dropdown එකෙන් තෝරන්න)</label>
+  <select id="att-ot-select">
+    <option value="0">0 පැය - OT නැත</option>
+    <option value="0.5">0.5 පැය (විනාඩි 30) ⭐</option>
+    <option value="1">1 පැය</option>
+    <option value="1.5">1.5 පැය</option>
+    <option value="2">2 පැය</option>
+    <option value="2.5">2.5 පැය</option>
+    <option value="3">3 පැය</option>
+    <option value="3.5">3.5 පැය</option>
+    <option value="4">4 පැය</option>
+    <option value="5">5 පැය</option>
+    <option value="6">6 පැය</option>
+  </select>
+  
+  <div class="ot-hint" id="ot-hint">💰 OT එකෙන් ලැබෙන ගාන: Rs. 0</div>
+  
+  <button id="btn-save">✅ Save කරන්න</button>
 </div>
 
-<div id="app">
-  <header class="app-header"><div class="hlogo"><div class="hlogo-icon">💰</div><span>Salary Tracker</span></div><button class="logout-btn" id="btn-logout">Logout</button></header>
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-    <button class="tab-btn" data-tab="attendance">Attendance</button>
-    <button class="tab-btn" data-tab="history">History</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
+<!-- RANGE MARKING -->
+<div class="card">
+  <h3>📆 දවස් ගානක් එක පාරටම Mark කරන්න</h3>
+  
+  <div class="grid-2">
+    <div><label>From</label><input type="date" id="range-from"></div>
+    <div><label>To</label><input type="date" id="range-to"></div>
   </div>
-
-  <div class="tab-panel active" id="tab-dashboard">
-    <div class="sec-lbl">Overview</div>
-    <div class="cards-grid">
-      <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
-      <div class="card"><div class="card-label">This Week</div><div class="card-val green" id="card-week">—</div><div class="card-sub" id="card-week-sub"></div></div>
-      <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
-      <div class="card"><div class="card-label">All Time</div><div class="card-val purple" id="card-total">—</div><div class="card-sub" id="card-total-sub"></div></div>
-    </div>
-    <div class="card-wide"><div class="card-label">Monthly Work Days</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="progress-labels" style="display:flex;justify-content:space-between;font-size:.7rem;"><span id="prog-done">0 days</span><span id="prog-goal">26 days</span></div></div>
-    <div class="cards-grid"><div class="card"><div class="card-label">Streak 🔥</div><div class="card-val indigo" id="card-streak">—</div><div class="card-sub">consecutive days</div></div><div class="card"><div class="card-label">Week Bonus</div><div class="card-val amber" id="card-bonus">—</div><div class="card-sub">this month</div></div></div>
-  </div>
-
-  <!-- ATTENDANCE with OT SELECT (dropdown) -->
-  <div class="tab-panel" id="tab-attendance">
-    <div class="sec-lbl">➕ Mark Single Day</div>
-    <div class="form-card">
-      <div class="frow">
-        <div class="fg"><label>Date</label><input type="date" id="att-date"></div>
-        <div class="fg"><label>Type</label><select id="att-type"><option value="work">Work Day</option><option value="sunday">Sunday</option><option value="off">Off Day</option></select></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label>📅 Overtime Hours (select)</label>
-          <select id="att-ot-select" class="ot-select">
-            <option value="0">0 hrs</option><option value="0.5">0.5 hrs</option><option value="1">1 hr</option><option value="1.5">1.5 hrs</option><option value="2">2 hrs</option><option value="2.5">2.5 hrs</option><option value="3">3 hrs</option><option value="3.5">3.5 hrs</option><option value="4">4 hrs</option><option value="5">5 hrs</option><option value="6">6 hrs</option>
-          </select>
-          <div class="ot-hint" id="ot-hint" style="font-size:.7rem; margin-top:6px;">OT = Rs. 0</div>
-        </div>
-        <div class="fg" style="display:flex;align-items:flex-end;"><button class="btn-save" id="btn-save-day">Save Day</button></div>
-      </div>
-    </div>
-
-    <div class="sec-lbl">📆 Date Range (Batch Mark)</div>
-    <div class="range-card">
-      <div class="frow"><div class="fg"><label>From</label><input type="date" id="range-from"></div><div class="fg"><label>To</label><input type="date" id="range-to"></div></div>
-      <div class="frow"><div class="fg"><label>Day Type</label><select id="range-type"><option value="work">Work Days (skip Sun)</option><option value="all-work">All Days as Work</option><option value="sunday">All as Sunday</option><option value="off">Mark as Off</option></select></div>
-      <div class="fg"><label>⏱️ OT per day (select)</label><select id="range-ot-select"><option value="0">0 hrs</option><option value="0.5">0.5</option><option value="1">1</option><option value="1.5">1.5</option><option value="2">2</option><option value="2.5">2.5</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div></div>
-      <button class="btn-save" id="btn-preview-range" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">Preview Range</button>
-      <div class="range-preview" id="range-preview"></div>
-      <div class="range-count" id="range-count" style="font-size:.75rem;margin-top:8px;"></div>
-      <button class="btn-save" id="btn-save-range" style="display:none;margin-top:12px;background:linear-gradient(135deg,var(--green),#16a34a);">Save All Days</button>
-    </div>
-  </div>
-
-  <div class="tab-panel" id="tab-history"><div class="filter-row"><select id="hist-filter"><option value="all">All Time</option></select></div><div id="month-summary-wrap"></div><div class="table-wrap"><table class="hist-table"><thead><tr><th>Date</th><th>Type</th><th>OT (hrs)</th><th>Earned</th><th></th></tr></thead><tbody id="hist-body"></tbody></table></div></div>
-  <div class="tab-panel" id="tab-settings"><div class="sec-lbl">Pay Rates</div><div class="set-card"><div class="rate-grid"><div class="rate-item"><label>Work Day (Rs)</label><input type="number" id="r-daily" value="1750"></div><div class="rate-item"><label>Sunday (Rs)</label><input type="number" id="r-sunday" value="1750"></div><div class="rate-item"><label>Overtime (per hr)</label><input type="number" id="r-ot" value="218"></div><div class="rate-item"><label>Week Bonus (Rs)</label><input type="number" id="r-bonus" value="600"></div></div><button class="btn-save" id="btn-save-rates">Save Rates</button></div></div>
+  
+  <label>Day Type</label>
+  <select id="range-type">
+    <option value="work">Work Days (සෙනසුරාදා ඇතුළුව, ඉරිදා skip)</option>
+    <option value="all-work">සියලු දවස් Work</option>
+    <option value="sunday">සියල්ල Sunday</option>
+    <option value="off">සියල්ල Off</option>
+  </select>
+  
+  <label>⏰ සෑම දවසකටම OT පැය (dropdown)</label>
+  <select id="range-ot-select">
+    <option value="0">0 hrs</option>
+    <option value="0.5">0.5 hrs</option>
+    <option value="1">1 hr</option>
+    <option value="1.5">1.5 hrs</option>
+    <option value="2">2 hrs</option>
+    <option value="2.5">2.5 hrs</option>
+    <option value="3">3 hrs</option>
+    <option value="4">4 hrs</option>
+  </select>
+  
+  <button id="btn-range-preview" style="background:linear-gradient(135deg,#3b82f6,#2563eb);margin-bottom:12px;">👁️ Preview කරන්න</button>
+  <div id="range-preview" style="font-size:13px;color:#94a3b8;margin-bottom:12px;"></div>
+  <button id="btn-range-save" style="display:none;background:linear-gradient(135deg,#10b981,#16a34a);">💾 මේ සියල්ල Save කරන්න</button>
 </div>
-<div id="toast"></div>
 
-<script type="module">
+<!-- HISTORY -->
+<div class="card">
+  <h3>📜 ඉතිහාසය</h3>
+  <select id="hist-filter" style="margin-bottom:12px;">
+    <option value="all">සියල්ල</option>
+  </select>
+  <div id="history-list" style="max-height:300px;overflow-y:auto;"></div>
+</div>
+
+<script>
+// Firebase config (same as before)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC7L_dB7gZWKk0EVE1xNs4egkxjwHFTLiE",
@@ -179,173 +162,130 @@ const firebaseConfig = {
   appId: "1:202519677110:web:d828b2e26b2063cac9fe17"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
-const db = getFirestore(firebaseApp);
-let RATES = { daily: 1750, ot: 218, sunday: 1750, weekBonus: 600 };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-function toast(msg, err = false) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'show' + (err ? ' err' : ''); setTimeout(() => t.className = '', 2500); }
+let RATES = { daily: 1750, ot: 218, sunday: 1750 };
 
-// TABS
-document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
-  const tab = btn.dataset.tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'history') renderHistory();
-  if (tab === 'dashboard') renderDashboard();
-}));
+function toast(msg) {
+  alert(msg); // simple for demo
+}
 
-// LOGIN
-document.getElementById('btn-login').addEventListener('click', async () => {
-  const email = document.getElementById('em').value.trim();
-  const pw = document.getElementById('pw').value;
-  try { await signInWithEmailAndPassword(auth, email, pw); } catch (e) { document.getElementById('login-err').textContent = 'Invalid email or password'; }
-});
-document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-
-onAuthStateChanged(auth, user => {
-  if (user) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    populateMonthFilter();
-    loadRates().then(() => renderDashboard());
-    document.getElementById('att-date').value = new Date().toISOString().slice(0, 10);
-    updateOtHint(0);
-  } else {
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-  }
-});
-
-// OT hint display for single day (dropdown)
+// OT hint update
 const otSelect = document.getElementById('att-ot-select');
-function updateOtHint(val) { const otVal = parseFloat(val); document.getElementById('ot-hint').innerHTML = `OT earnings: Rs. ${(otVal * RATES.ot).toLocaleString()}`; }
-otSelect.addEventListener('change', () => updateOtHint(otSelect.value));
-async function loadRates() { try { const s = await getDoc(doc(db, 'settings', 'rates')); if (s.exists()) RATES = { ...RATES, ...s.data() }; } catch (e) { } document.getElementById('r-daily').value = RATES.daily; document.getElementById('r-ot').value = RATES.ot; document.getElementById('r-sunday').value = RATES.sunday; document.getElementById('r-bonus').value = RATES.weekBonus; updateOtHint(otSelect.value); }
-document.getElementById('btn-save-rates').addEventListener('click', async () => { RATES.daily = +document.getElementById('r-daily').value; RATES.ot = +document.getElementById('r-ot').value; RATES.sunday = +document.getElementById('r-sunday').value; RATES.weekBonus = +document.getElementById('r-bonus').value; await setDoc(doc(db, 'settings', 'rates'), RATES); toast('Rates updated'); renderDashboard(); updateOtHint(otSelect.value); });
+const otHint = document.getElementById('ot-hint');
+function updateOtHint() {
+  let val = parseFloat(otSelect.value) || 0;
+  otHint.innerHTML = `💰 OT එකෙන් ලැබෙන ගාන: Rs. ${(val * RATES.ot).toLocaleString()}`;
+}
+otSelect.addEventListener('change', updateOtHint);
 
-// SINGLE DAY SAVE (with select OT)
-document.getElementById('btn-save-day').addEventListener('click', async () => {
+// Save single day
+document.getElementById('btn-save').addEventListener('click', async () => {
   const date = document.getElementById('att-date').value;
-  if (!date) { toast('Pick a date', true); return; }
   const type = document.getElementById('att-type').value;
-  const ot = parseFloat(document.getElementById('att-ot-select').value) || 0;
+  const ot = parseFloat(otSelect.value) || 0;
+  if (!date) { toast("දවසක් තෝරන්න"); return; }
   await setDoc(doc(db, 'attendance', date), { type, ot });
-  toast('Attendance saved ✓');
-  renderDashboard();
+  toast("✅ සුරකින ලදී");
+  loadHistory();
 });
 
-// RANGE with OT SELECT
-const rangeOtSelect = document.getElementById('range-ot-select');
-function getDatesInRange(from, to) { let dates = [], d = new Date(from); while (d <= new Date(to)) { dates.push(new Date(d).toISOString().slice(0, 10)); d.setDate(d.getDate() + 1); } return dates; }
-function buildRangeDays(dates, rangeType, ot) {
-  return dates.map(date => { const dow = new Date(date).getDay(); let type = null;
+// Range preview & save
+let previewDays = [];
+document.getElementById('btn-range-preview').addEventListener('click', () => {
+  const from = document.getElementById('range-from').value;
+  const to = document.getElementById('range-to').value;
+  if (!from || !to) { toast("From & To තෝරන්න"); return; }
+  const rangeType = document.getElementById('range-type').value;
+  const ot = parseFloat(document.getElementById('range-ot-select').value) || 0;
+  
+  let dates = [];
+  let d = new Date(from);
+  while (d <= new Date(to)) {
+    dates.push(new Date(d).toISOString().slice(0,10));
+    d.setDate(d.getDate() + 1);
+  }
+  
+  previewDays = dates.map(date => {
+    let dow = new Date(date).getDay();
+    let type = null;
     if (rangeType === 'work') type = dow === 0 ? null : 'work';
     else if (rangeType === 'all-work') type = 'work';
     else if (rangeType === 'sunday') type = 'sunday';
     else type = 'off';
     return type ? { date, type, ot: (type === 'off' ? 0 : ot) } : null;
   }).filter(Boolean);
-}
-let previewDays = [];
-document.getElementById('btn-preview-range').addEventListener('click', () => {
-  const from = document.getElementById('range-from').value, to = document.getElementById('range-to').value;
-  if (!from || !to) { toast('Select both dates', true); return; }
-  if (from > to) { toast('From must be before To', true); return; }
-  const rangeType = document.getElementById('range-type').value;
-  const ot = parseFloat(rangeOtSelect.value) || 0;
-  const dates = getDatesInRange(from, to);
-  previewDays = buildRangeDays(dates, rangeType, ot);
-  const previewDiv = document.getElementById('range-preview');
-  const daysMap = { work: 'Work', sunday: 'Sunday', off: 'Off' };
-  previewDiv.innerHTML = previewDays.map(d => `<div class="range-day-item"><span class="rdi-date">${d.date} <span style="opacity:0.7;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(d.date).getDay()]}</span></span><span>${daysMap[d.type]}${d.ot ? ` +${d.ot}h` : ''}</span></div>`).join('');
-  document.getElementById('range-count').innerHTML = `📌 ${previewDays.length} days will be saved.`;
-  document.getElementById('btn-save-range').style.display = previewDays.length ? 'block' : 'none';
+  
+  document.getElementById('range-preview').innerHTML = previewDays.map(d => 
+    `📅 ${d.date} - ${d.type} ${d.ot ? `+${d.ot}h OT` : ''}`
+  ).join('<br>');
+  document.getElementById('btn-range-save').style.display = 'block';
 });
-document.getElementById('btn-save-range').addEventListener('click', async () => {
+
+document.getElementById('btn-range-save').addEventListener('click', async () => {
   if (!previewDays.length) return;
   const batch = writeBatch(db);
   previewDays.forEach(d => batch.set(doc(db, 'attendance', d.date), { type: d.type, ot: d.ot }));
   await batch.commit();
-  toast(`${previewDays.length} days saved ✓`);
+  toast(`✅ ${previewDays.length} දවස් සුරකින ලදී`);
   document.getElementById('range-preview').innerHTML = '';
-  document.getElementById('range-count').innerHTML = '';
-  document.getElementById('btn-save-range').style.display = 'none';
-  previewDays = [];
-  renderDashboard();
+  document.getElementById('btn-range-save').style.display = 'none';
+  loadHistory();
 });
 
-// HELPERS & CALC
-function calcDay(rec) { if (!rec || rec.type === 'off') return 0; const base = rec.type === 'sunday' ? RATES.sunday : RATES.daily; return base + (rec.ot || 0) * RATES.ot; }
-function getMonday(ds) { const d = new Date(ds), dw = d.getDay(), diff = d.getDate() - dw + (dw === 0 ? -6 : 1); return new Date(d.setDate(diff)).toISOString().slice(0, 10); }
-function calcTotal(records) {
-  const weeks = {};
-  Object.entries(records).forEach(([date, rec]) => { if (rec.type === 'work') { const dw = new Date(date).getDay(); if (dw >= 1 && dw <= 6) { const wk = getMonday(date); if (!weeks[wk]) weeks[wk] = new Set(); weeks[wk].add(date); } } });
-  let total = 0; Object.values(records).forEach(rec => total += calcDay(rec));
-  let bonusCount = 0; Object.values(weeks).forEach(days => { if (days.size >= 6) { total += RATES.weekBonus; bonusCount++; } });
-  return { total, bonusCount };
-}
-async function getAllAttendance() { const snap = await getDocs(collection(db, 'attendance')); const map = {}; snap.forEach(d => map[d.id] = d.data()); return map; }
-
-async function renderDashboard() {
-  const records = await getAllAttendance();
-  const today = new Date().toISOString().slice(0, 10);
-  const tm = today.slice(0, 7);
-  const { total: allTotal } = calcTotal(records);
-  const mRecs = {}; Object.entries(records).forEach(([d, v]) => { if (d.startsWith(tm)) mRecs[d] = v; });
-  const { total: monthTotal, bonusCount } = calcTotal(mRecs);
-  const workDays = Object.values(mRecs).filter(r => r.type !== 'off').length;
-  const now = new Date(), dw = now.getDay();
-  const mon = new Date(now); mon.setDate(now.getDate() - (dw === 0 ? 6 : dw - 1));
-  const wRecs = {};
-  for (let i = 0; i < 7; i++) { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = d.toISOString().slice(0, 10); if (records[k]) wRecs[k] = records[k]; }
-  const { total: weekTotal } = calcTotal(wRecs);
-  const weekDays = Object.values(wRecs).filter(r => r && r.type !== 'off').length;
-  const todayRec = records[today];
-  const todayEarn = calcDay(todayRec);
-  const todayStr = !todayRec ? 'Not marked' : (todayRec.type === 'off' ? 'Off day' : 'Rs.' + todayEarn.toLocaleString());
-  const todaySub = !todayRec ? 'mark today' : (todayRec.ot ? `${todayRec.ot}h OT included` : 'regular');
-  let streak = 0; const sd = new Date(today);
-  while (true) { const k = sd.toISOString().slice(0, 10); const r = records[k]; if (r && r.type !== 'off') { streak++; sd.setDate(sd.getDate() - 1); } else break; }
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  let sundays = 0; for (let i = 1; i <= daysInMonth; i++) if (new Date(tm + '-' + String(i).padStart(2, '0')).getDay() === 0) sundays++;
-  const totalWorkDays = daysInMonth - sundays;
-  document.getElementById('card-today').innerHTML = todayStr;
-  document.getElementById('card-today-sub').innerHTML = todaySub;
-  document.getElementById('card-week').innerHTML = 'Rs.' + weekTotal.toLocaleString();
-  document.getElementById('card-week-sub').innerHTML = weekDays + ' days this week';
-  document.getElementById('card-month').innerHTML = 'Rs.' + monthTotal.toLocaleString();
-  document.getElementById('card-month-sub').innerHTML = workDays + ' days worked';
-  document.getElementById('card-total').innerHTML = 'Rs.' + allTotal.toLocaleString();
-  document.getElementById('card-streak').innerHTML = streak;
-  document.getElementById('card-bonus').innerHTML = bonusCount ? 'Rs.' + (bonusCount * RATES.weekBonus).toLocaleString() : 'Rs.0';
-  const pct = Math.min(100, Math.round((workDays / totalWorkDays) * 100));
-  document.getElementById('month-prog').style.width = pct + '%';
-  document.getElementById('prog-done').innerHTML = workDays + ' days worked';
-  document.getElementById('prog-goal').innerHTML = totalWorkDays + ' working days';
-  if (todayRec) { document.getElementById('att-type').value = todayRec.type; document.getElementById('att-ot-select').value = todayRec.ot || 0; updateOtHint(todayRec.ot || 0); }
+// Load history
+async function loadHistory() {
+  const snap = await getDocs(collection(db, 'attendance'));
+  let records = [];
+  snap.forEach(d => records.push({ date: d.id, ...d.data() }));
+  records.sort((a,b) => b.date.localeCompare(a.date));
+  
+  const container = document.getElementById('history-list');
+  if (records.length === 0) {
+    container.innerHTML = '<div style="color:#6b7280;text-align:center;">No records yet</div>';
+    return;
+  }
+  
+  container.innerHTML = records.map(rec => {
+    let earn = 0;
+    if (rec.type === 'work') earn = RATES.daily + (rec.ot || 0) * RATES.ot;
+    else if (rec.type === 'sunday') earn = RATES.sunday + (rec.ot || 0) * RATES.ot;
+    else earn = 0;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e293b;">
+        <div><strong>${rec.date}</strong><br><span style="font-size:11px;color:#94a3b8;">${rec.type} ${rec.ot ? rec.ot+'h OT' : ''}</span></div>
+        <div style="color:#10b981;">Rs. ${earn.toLocaleString()}</div>
+        <button onclick="deleteDay('${rec.date}')" style="width:auto;padding:6px 12px;background:#f43f5e;">Delete</button>
+      </div>
+    `;
+  }).join('');
 }
 
-function populateMonthFilter() { const sel = document.getElementById('hist-filter'); const now = new Date(); for (let i = 0; i < 13; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); const val = d.toISOString().slice(0, 7); const lbl = d.toLocaleString('default', { month: 'long', year: 'numeric' }); const opt = document.createElement('option'); opt.value = val; opt.textContent = lbl; sel.appendChild(opt); } }
-document.getElementById('hist-filter').addEventListener('change', renderHistory);
-async function renderHistory() {
-  const records = await getAllAttendance();
-  const f = document.getElementById('hist-filter').value;
-  const filtered = {}; Object.entries(records).forEach(([d, v]) => { if (f === 'all' || d.startsWith(f)) filtered[d] = v; });
-  const sorted = Object.entries(filtered).sort((a, b) => b[0].localeCompare(a[0]));
-  const tbody = document.getElementById('hist-body');
-  if (f !== 'all') {
-    const { total, bonusCount } = calcTotal(filtered);
-    const wDays = Object.values(filtered).filter(r => r.type !== 'off').length;
-    document.getElementById('month-summary-wrap').innerHTML = `<div class="month-summary"><div><div class="ms-label">Total Earned</div><div class="ms-val">Rs. ${total.toLocaleString()}</div></div><div><div class="ms-label">Work Days</div><div class="ms-val" style="color:var(--green)">${wDays}</div></div><div><div class="ms-label">Week Bonus</div><div class="ms-val">${bonusCount}× Rs.${RATES.weekBonus}</div></div></div>`;
-  } else { document.getElementById('month-summary-wrap').innerHTML = ''; }
-  if (!sorted.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;">✨ No records</td></tr>`; return; }
-  const typeNames = { work: 'Work', sunday: 'Sunday', off: 'Off' };
-  tbody.innerHTML = sorted.map(([date, rec]) => { const earn = calcDay(rec); return `<tr><td><span style="font-family:monospace;">${date}</span> <span style="font-size:.6rem;background:rgba(99,102,241,.2);padding:2px 6px;border-radius:20px;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(date).getDay()]}</span></td><td style="color:${rec.type === 'work' ? 'var(--green)' : rec.type === 'sunday' ? '#f59e0b' : '#6b7280'}">${typeNames[rec.type]}</td><td style="font-family:monospace;">${rec.ot ? rec.ot + 'h' : '-'}</td><td class="earn-cell" style="color:var(--green);">${earn ? 'Rs.' + earn.toLocaleString() : '-'}</td><td><button class="del-btn" data-date="${date}">✕</button></td></tr>`; }).join('');
-  document.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', async (e) => { if (confirm('Delete attendance?')) { await deleteDoc(doc(db, 'attendance', btn.dataset.date)); toast('Deleted'); renderDashboard(); renderHistory(); } }));
-}
+window.deleteDay = async (date) => {
+  if (confirm(`Delete ${date}?`)) {
+    await deleteDoc(doc(db, 'attendance', date));
+    loadHistory();
+  }
+};
+
+// Auth and init
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    let email = prompt("Email:");
+    let pwd = prompt("Password:");
+    try {
+      await signInWithEmailAndPassword(auth, email, pwd);
+    } catch(e) {
+      alert("Login failed");
+    }
+  } else {
+    document.getElementById('att-date').value = new Date().toISOString().slice(0,10);
+    updateOtHint();
+    loadHistory();
+  }
+});
 </script>
 </body>
 </html>
