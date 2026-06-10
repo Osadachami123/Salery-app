@@ -1,5 +1,5 @@
 {
-  "name": "Salary Tracker",
+  "name": "Salary Tracker App",
   "short_name": "SalaryTrack",
   "description": "Track your daily salary, overtime, and weekly earnings",
   "start_url": "/",
@@ -7,41 +7,14 @@
   "theme_color": "#6366f1",
   "background_color": "#05070c",
   "orientation": "portrait",
+  "scope": "/",
   "icons": [
-    {
-      "src": "icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "https://via.placeholder.com/72x72?text=💰", "sizes": "72x72", "type": "image/png" },
+    { "src": "https://via.placeholder.com/96x96?text=💰", "sizes": "96x96", "type": "image/png" },
+    { "src": "https://via.placeholder.com/128x128?text=💰", "sizes": "128x128", "type": "image/png" },
+    { "src": "https://via.placeholder.com/144x144?text=💰", "sizes": "144x144", "type": "image/png" },
+    { "src": "https://via.placeholder.com/152x152?text=💰", "sizes": "152x152", "type": "image/png" },
+    { "src": "https://via.placeholder.com/192x192?text=💰", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://via.placeholder.com/512x512?text=💰", "sizes": "512x512", "type": "image/png" }
   ]
 }
