@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Sunday → Saturday Week (Fixed)</title>
+<title>Salary Tracker | Monday → Sunday Week</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -105,7 +105,7 @@ input[type="date"]{color-scheme:dark;}
   <div class="tab-panel active" id="tab-dashboard">
     <div class="cards-grid">
       <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
-      <div class="card"><div class="card-label">This Week (Sun-Sat)</div><div class="card-val green" id="card-week">—</div><div class="card-sub" id="card-week-sub"></div></div>
+      <div class="card"><div class="card-label">This Week (Mon-Sun)</div><div class="card-val green" id="card-week">—</div><div class="card-sub" id="card-week-sub"></div></div>
       <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
       <div class="card"><div class="card-label">All Time</div><div class="card-val indigo" id="card-total">—</div></div>
     </div>
@@ -115,7 +115,7 @@ input[type="date"]{color-scheme:dark;}
       <div class="card">
         <div class="card-label">Previous Week Salary</div>
         <div class="card-val green" id="card-prev-week">—</div>
-        <div class="card-sub" id="card-prev-week-sub">(Sunday → Saturday)</div>
+        <div class="card-sub" id="card-prev-week-sub">(Monday → Sunday)</div>
       </div>
       <div class="card">
         <div class="card-label">Streak 🔥</div>
@@ -125,10 +125,10 @@ input[type="date"]{color-scheme:dark;}
     </div>
   </div>
 
-  <!-- WEEKLY REPORT - FIXED VERSION -->
+  <!-- WEEKLY REPORT - Monday to Sunday -->
   <div class="tab-panel" id="tab-weekly">
     <div class="weekly-report-card">
-      <div class="sec-lbl" style="margin-top:0;">📅 සතියේ පඩිය බලන්න (Sunday → Saturday)</div>
+      <div class="sec-lbl" style="margin-top:0;">📅 සතියේ පඩිය බලන්න (Monday → Sunday)</div>
       <div class="week-nav">
         <button id="prev-week-btn">◀ පෙර සතිය</button>
         <span id="current-week-label">--</span>
@@ -228,18 +228,20 @@ onAuthStateChanged(auth, user => {
     loadRates();
     renderDashboard();
     document.getElementById('att-date').value = new Date().toISOString().slice(0,10);
-    loadWeeklyReportForDate(new Date()); // Load current week
+    loadWeeklyReportForDate(new Date());
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
 });
 
-// ========== SUNDAY TO SATURDAY WEEK FUNCTIONS ==========
-function getWeekStartSunday(date) {
+// ========== MONDAY TO SUNDAY WEEK FUNCTIONS ==========
+function getWeekStartMonday(date) {
   const d = new Date(date);
   const day = d.getDay();
-  d.setDate(d.getDate() - day);
+  // Monday = 1, Sunday = 0
+  const diff = (day === 0 ? -6 : 1) - day;
+  d.setDate(d.getDate() + diff);
   d.setHours(0,0,0,0);
   return d;
 }
@@ -259,18 +261,17 @@ function formatWeekRange(startDate) {
 let currentWeekStart = null;
 
 async function loadWeeklyReportForDate(date) {
-  currentWeekStart = getWeekStartSunday(date);
+  currentWeekStart = getWeekStartMonday(date);
   const weekStart = currentWeekStart;
   
   const weekDates = [];
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
     d.setDate(weekStart.getDate() + i);
     weekDates.push({ date: formatDateYMD(d), dayName: dayNames[i], fullDate: new Date(d) });
   }
   
-  // Update label
   document.getElementById('current-week-label').innerHTML = formatWeekRange(weekStart);
   
   const records = await getAllAttendance();
@@ -322,7 +323,7 @@ async function loadWeeklyReportForDate(date) {
       <div class="stat-box"><div class="stat-label">Total OT Hours</div><div class="stat-value" style="color:var(--ac2);">${totalOtHours}h</div></div>
       <div class="stat-box"><div class="stat-label">Week Bonus</div><div class="stat-value" style="color:${gotBonus ? '#10b981' : '#6b7280'};">${gotBonus ? `✅ Rs.${RATES.weekBonus.toLocaleString()}` : 'Need 6 days'}</div></div>
     </div>
-    <div class="sec-lbl" style="margin-top:0;">📋 Sunday → Saturday Breakdown</div>
+    <div class="sec-lbl" style="margin-top:0;">📋 Monday → Sunday Breakdown</div>
     <div class="week-breakdown">
       ${dayDetails.map(d => `
         <div class="day-row ${d.isToday ? 'highlight' : ''}">
@@ -333,7 +334,7 @@ async function loadWeeklyReportForDate(date) {
         </div>
       `).join('')}
     </div>
-    ${gotBonus ? `<div class="badge-bonus">🏆 Weekly Bonus added! (6 or more days worked from Sunday to Saturday)</div>` : '<div class="badge-bonus" style="background:rgba(100,100,100,.1);">⚠️ Bonus requires 6 or more work days in the week (Sun-Sat)</div>'}
+    ${gotBonus ? `<div class="badge-bonus">🏆 Weekly Bonus added! (6 or more days worked from Monday to Sunday)</div>` : '<div class="badge-bonus" style="background:rgba(100,100,100,.1);">⚠️ Bonus requires 6 or more work days in the week (Mon-Sun)</div>'}
   `;
 }
 
@@ -376,9 +377,9 @@ async function renderDashboard() {
   const todayRec = records[today];
   const todayEarn = calcDay(todayRec);
   
-  // THIS WEEK (Sunday to Saturday)
+  // THIS WEEK (Monday to Sunday)
   const now = new Date();
-  const weekStart = getWeekStartSunday(now);
+  const weekStart = getWeekStartMonday(now);
   let weekTotal = 0, weekDays = 0;
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
@@ -403,7 +404,6 @@ async function renderDashboard() {
       prevWorkDays++;
     }
   }
-  // Add bonus for previous week
   if (prevWorkDays >= 6) prevWeekTotal += RATES.weekBonus;
   
   // THIS MONTH
@@ -416,7 +416,7 @@ async function renderDashboard() {
   const weeksMap = {};
   Object.entries(monthRecords).forEach(([date, rec]) => {
     if (rec.type === 'work' || rec.type === 'sunday') {
-      const weekStartKey = formatDateYMD(getWeekStartSunday(new Date(date)));
+      const weekStartKey = formatDateYMD(getWeekStartMonday(new Date(date)));
       if (!weeksMap[weekStartKey]) weeksMap[weekStartKey] = new Set();
       weeksMap[weekStartKey].add(date);
       monthTotal += calcDay(rec);
@@ -449,7 +449,7 @@ async function renderDashboard() {
   document.getElementById('card-today').innerHTML = todayRec ? (todayRec.type === 'off' ? 'Off' : `Rs.${todayEarn.toLocaleString()}`) : '—';
   document.getElementById('card-today-sub').innerHTML = todayRec ? (todayRec.ot ? `${todayRec.ot}h OT` : '') : 'Not marked';
   document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
-  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days (Sun-Sat)`;
+  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days (Mon-Sun)`;
   document.getElementById('card-month').innerHTML = `Rs.${monthTotal.toLocaleString()}`;
   document.getElementById('card-month-sub').innerHTML = `${monthWorkDays} days worked`;
   document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
@@ -457,7 +457,7 @@ async function renderDashboard() {
   
   if (prevWeekTotal > 0) {
     document.getElementById('card-prev-week').innerHTML = `Rs.${prevWeekTotal.toLocaleString()}`;
-    document.getElementById('card-prev-week-sub').innerHTML = `${prevWorkDays} days worked (Sun-Sat)`;
+    document.getElementById('card-prev-week-sub').innerHTML = `${prevWorkDays} days worked (Mon-Sun)`;
   } else {
     document.getElementById('card-prev-week').innerHTML = 'No data';
     document.getElementById('card-prev-week-sub').innerHTML = 'Mark attendance for last week';
@@ -544,7 +544,7 @@ async function renderHistory() {
   tbody.innerHTML = sorted.map(([date, rec]) => {
     const earn = calcDay(rec);
     const dayName = dayNames[new Date(date).getDay()];
-    return `<tr>
+    return `</tr>
       <td style="font-family:monospace;">${date}</td>
       <td style="font-size:.75rem;color:var(--sm);">${dayName}</td>
       <td>${rec.type === 'work' ? '💼 Work' : rec.type === 'sunday' ? '☀️ Sunday' : '😴 Off'}</td>
