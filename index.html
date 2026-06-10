@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Clean UI + Week Grouping</title>
+<title>Salary Tracker | Current Week Highlight</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 
 /* Dashboard Cards */
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:16px 18px;}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:16px 18px;position:relative;}
 .card-val{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:500;}
 .card-val.large{font-size:1.8rem;}
 .card-val.indigo{color:var(--ac);}
@@ -49,6 +49,89 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .alltime-card .card-val{font-size:2.2rem;font-weight:700;color:var(--green);}
 .alltime-card .card-sub{font-size:.7rem;color:var(--mu);}
 
+/* ========== NEW: Current Week Card Styles ========== */
+.current-week-card {
+  border: 2px solid var(--green);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), var(--card));
+  position: relative;
+  overflow: hidden;
+}
+
+.current-week-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12), transparent);
+  border-radius: 50%;
+  transform: translate(40px, -40px);
+  pointer-events: none;
+}
+
+.week-badge {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: var(--green);
+  color: #05070c;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  z-index: 2;
+}
+
+/* ========== NEW: Previous Week Card Styles ========== */
+.previous-week-card {
+  border: 1.5px solid rgba(107, 114, 128, 0.35);
+  background: rgba(15, 22, 34, 0.7);
+  position: relative;
+}
+
+.previous-week-card .week-badge.previous {
+  background: rgba(107, 114, 128, 0.25);
+  color: var(--mu);
+  box-shadow: none;
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.previous-week-card .card-val {
+  color: var(--mu);
+  opacity: 0.7;
+}
+
+.previous-week-card .card-sub {
+  color: rgba(107, 114, 128, 0.5);
+}
+
+.previous-week-card:hover {
+  opacity: 1;
+  border-color: rgba(107, 114, 128, 0.6);
+  transition: all 0.2s ease;
+}
+
+.previous-week-card:hover .card-val {
+  opacity: 1;
+  color: var(--sm);
+}
+
+.cards-grid-single {
+  display: block;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* Progress */
 .progress-bar{height:6px;background:var(--bdr);border-radius:10px;margin-bottom:6px;}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ac),var(--green));}
 .sec-lbl{font-size:.68rem;font-weight:600;color:var(--mu);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
@@ -116,7 +199,7 @@ input[type="date"]{color-scheme:dark;}
     <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
   </div>
 
-  <!-- DASHBOARD - All Time big and prominent -->
+  <!-- DASHBOARD - UPDATED with Current Week Highlight -->
   <div class="tab-panel active" id="tab-dashboard">
     <!-- All Time Salary - BIG -->
     <div class="alltime-card">
@@ -125,16 +208,33 @@ input[type="date"]{color-scheme:dark;}
       <div class="card-sub">lifetime salary</div>
     </div>
     
-    <div class="cards-grid">
-      <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
-      <div class="card"><div class="card-label">This Week (Mon-Sun)</div><div class="card-val green" id="card-week">—</div><div class="card-sub" id="card-week-sub"></div></div>
-      <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
-      <div class="card"><div class="card-label">Previous Week</div><div class="card-val green" id="card-prev-week">—</div><div class="card-sub" id="card-prev-week-sub"></div></div>
+    <!-- CURRENT WEEK CARD - Green border + Badge -->
+    <div class="cards-grid-single">
+      <div class="card current-week-card">
+        <div class="week-badge">● CURRENT WEEK</div>
+        <div class="card-label">This Week (Monday → Sunday)</div>
+        <div class="card-val green" id="card-week" style="font-size: 1.5rem;">—</div>
+        <div class="card-sub" id="card-week-sub"></div>
+      </div>
     </div>
     
-    <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">30</span> days worked</div></div>
+    <!-- PREVIOUS WEEK CARD - Gray border + Faded -->
+    <div class="cards-grid-single">
+      <div class="card previous-week-card">
+        <div class="week-badge previous">◀ PREVIOUS WEEK</div>
+        <div class="card-label">Last Week (Monday → Sunday)</div>
+        <div class="card-val" id="card-prev-week" style="font-size: 1.2rem;">—</div>
+        <div class="card-sub faded" id="card-prev-week-sub"></div>
+      </div>
+    </div>
     
-    <div class="card"><div class="card-label">🔥 Current Streak</div><div class="card-val indigo" id="card-streak">—</div><div class="card-sub">consecutive work days</div></div>
+    <!-- Other Stats -->
+    <div class="cards-grid">
+      <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
+      <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
+      <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">30</span> days</div></div>
+      <div class="card"><div class="card-label">🔥 Streak</div><div class="card-val indigo" id="card-streak">—</div><div class="card-sub">consecutive days</div></div>
+    </div>
   </div>
 
   <!-- WEEKLY REPORT -->
@@ -314,8 +414,9 @@ async function renderDashboard() {
   let todayRec = records[todayStr];
   let todayEarn = calculateEarning(todayRec);
   
+  // THIS WEEK
   let thisMonday = getMondayOfWeek(today);
-  let weekTotal = 0, weekDays = 0;
+  let weekTotal = 0, weekDays = 0, weekOt = 0;
   for (let i = 0; i < 7; i++) {
     let d = new Date(thisMonday);
     d.setDate(thisMonday.getDate() + i);
@@ -323,11 +424,13 @@ async function renderDashboard() {
     if (records[key] && records[key].type !== 'off') {
       weekTotal += calculateEarning(records[key]);
       weekDays++;
+      weekOt += records[key].ot || 0;
     }
   }
   let weekBonus = weekDays >= 6;
   if (weekBonus) weekTotal += RATES.weekBonus;
   
+  // PREVIOUS WEEK
   let prevMonday = new Date(thisMonday);
   prevMonday.setDate(thisMonday.getDate() - 7);
   let prevTotal = 0, prevDays = 0;
@@ -340,8 +443,10 @@ async function renderDashboard() {
       prevDays++;
     }
   }
-  if (prevDays >= 6) prevTotal += RATES.weekBonus;
+  let prevBonus = prevDays >= 6;
+  if (prevBonus) prevTotal += RATES.weekBonus;
   
+  // THIS MONTH
   let currentMonth = todayStr.slice(0,7);
   let monthTotal = 0, monthDays = 0;
   let monthWeeks = {};
@@ -359,9 +464,11 @@ async function renderDashboard() {
     if (days >= 6) { monthTotal += RATES.weekBonus; monthBonusCount++; }
   }
   
+  // ALL TIME
   let allTotal = 0;
   for (let rec of Object.values(records)) allTotal += calculateEarning(rec);
   
+  // STREAK
   let streak = 0;
   let check = new Date(today);
   while (true) {
@@ -374,16 +481,17 @@ async function renderDashboard() {
   let daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   let percent = Math.min(100, Math.round((monthDays / daysInMonth) * 100));
   
+  // Update DOM
+  document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
+  document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
+  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days${weekBonus ? ' + Bonus!' : ''}`;
+  document.getElementById('card-prev-week').innerHTML = prevTotal > 0 ? `Rs.${prevTotal.toLocaleString()}` : '—';
+  document.getElementById('card-prev-week-sub').innerHTML = prevDays > 0 ? `${prevDays} days worked` : 'No data';
   document.getElementById('card-today').innerHTML = todayRec ? (todayRec.type === 'off' ? 'Off' : `Rs.${todayEarn.toLocaleString()}`) : '—';
   document.getElementById('card-today-sub').innerHTML = todayRec ? (todayRec.ot ? `${todayRec.ot}h OT` : 'Regular') : 'Not marked';
-  document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
-  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days${weekBonus ? ' +Bonus' : ''}`;
   document.getElementById('card-month').innerHTML = `Rs.${monthTotal.toLocaleString()}`;
   document.getElementById('card-month-sub').innerHTML = `${monthDays} days (${monthBonusCount} bonuses)`;
-  document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
   document.getElementById('card-streak').innerHTML = streak;
-  document.getElementById('card-prev-week').innerHTML = prevTotal > 0 ? `Rs.${prevTotal.toLocaleString()}` : 'No data';
-  document.getElementById('card-prev-week-sub').innerHTML = prevDays > 0 ? `${prevDays} days worked` : 'Mark last week';
   document.getElementById('month-prog').style.width = percent + '%';
   document.getElementById('prog-done').innerHTML = monthDays;
   document.getElementById('prog-goal').innerHTML = daysInMonth;
@@ -492,7 +600,6 @@ document.getElementById('btn-save-range').addEventListener('click', async () => 
   renderHistoryWithGroups();
 });
 
-// HISTORY WITH WEEK GROUPING
 async function renderHistoryWithGroups() {
   let records = await getAllRecords();
   let filter = document.getElementById('hist-filter').value;
@@ -507,7 +614,6 @@ async function renderHistoryWithGroups() {
     return;
   }
   
-  // Group by week (Monday to Sunday)
   let weeksMap = new Map();
   let dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
@@ -521,7 +627,6 @@ async function renderHistoryWithGroups() {
     weeksMap.get(weekKey).records.push({ date, rec });
   }
   
-  // Sort weeks by date (newest first)
   let sortedWeeks = Array.from(weeksMap.keys()).sort((a,b) => b.localeCompare(a));
   
   let html = '';
@@ -555,7 +660,7 @@ async function renderHistoryWithGroups() {
       </tr>`;
     }
     
-    html += `</tbody></table></div>`;
+    html += `</tbody><table></div>`;
   }
   
   document.getElementById('history-grouped-container').innerHTML = html;
