@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Monday → Sunday Week</title>
+<title>Salary Tracker | Monday → Sunday (Full Fixed)</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -101,7 +101,7 @@ input[type="date"]{color-scheme:dark;}
     <button class="tab-btn" data-tab="settings">Settings</button>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD - FIXED Monday to Sunday -->
   <div class="tab-panel active" id="tab-dashboard">
     <div class="cards-grid">
       <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
@@ -125,7 +125,7 @@ input[type="date"]{color-scheme:dark;}
     </div>
   </div>
 
-  <!-- WEEKLY REPORT - Monday to Sunday -->
+  <!-- WEEKLY REPORT -->
   <div class="tab-panel" id="tab-weekly">
     <div class="weekly-report-card">
       <div class="sec-lbl" style="margin-top:0;">📅 සතියේ පඩිය බලන්න (Monday → Sunday)</div>
@@ -239,10 +239,16 @@ onAuthStateChanged(auth, user => {
 function getWeekStartMonday(date) {
   const d = new Date(date);
   const day = d.getDay();
-  // Monday = 1, Sunday = 0
+  // Monday = 1, Sunday = 0. If Sunday (0), go back 6 days. Else go back (day-1) days
   const diff = (day === 0 ? -6 : 1) - day;
   d.setDate(d.getDate() + diff);
   d.setHours(0,0,0,0);
+  return d;
+}
+
+function getWeekEndSunday(mondayStart) {
+  const d = new Date(mondayStart);
+  d.setDate(mondayStart.getDate() + 6);
   return d;
 }
 
@@ -269,7 +275,7 @@ async function loadWeeklyReportForDate(date) {
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
     d.setDate(weekStart.getDate() + i);
-    weekDates.push({ date: formatDateYMD(d), dayName: dayNames[i], fullDate: new Date(d) });
+    weekDates.push({ date: formatDateYMD(d), dayName: dayNames[i] });
   }
   
   document.getElementById('current-week-label').innerHTML = formatWeekRange(weekStart);
@@ -282,7 +288,7 @@ async function loadWeeklyReportForDate(date) {
   const dayDetails = [];
   
   for (let i = 0; i < weekDates.length; i++) {
-    const { date, dayName, fullDate } = weekDates[i];
+    const { date, dayName } = weekDates[i];
     const rec = records[date];
     let earned = 0;
     let type = 'Not marked';
@@ -302,7 +308,6 @@ async function loadWeeklyReportForDate(date) {
       } else {
         earned = 0;
         type = 'Off';
-        ot = 0;
       }
       totalOtHours += ot;
       weekTotal += earned;
@@ -371,30 +376,45 @@ async function getAllAttendance() {
   return map;
 }
 
+// ========== DASHBOARD - FULLY FIXED MONDAY TO SUNDAY ==========
 async function renderDashboard() {
   const records = await getAllAttendance();
-  const today = new Date().toISOString().slice(0,10);
-  const todayRec = records[today];
+  const today = new Date();
+  const todayStr = formatDateYMD(today);
+  const todayRec = records[todayStr];
   const todayEarn = calcDay(todayRec);
   
-  // THIS WEEK (Monday to Sunday)
-  const now = new Date();
-  const weekStart = getWeekStartMonday(now);
-  let weekTotal = 0, weekDays = 0;
+  // THIS WEEK - Monday to Sunday
+  const thisWeekStart = getWeekStartMonday(today);
+  let weekTotal = 0;
+  let weekDays = 0;
+  let weekOtHours = 0;
+  
   for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
+    const d = new Date(thisWeekStart);
+    d.setDate(thisWeekStart.getDate() + i);
     const key = formatDateYMD(d);
     if (records[key] && records[key].type !== 'off') {
-      weekTotal += calcDay(records[key]);
+      const dayEarn = calcDay(records[key]);
+      weekTotal += dayEarn;
       weekDays++;
+      weekOtHours += records[key].ot || 0;
     }
   }
+  // Add bonus for this week if 6+ days worked
+  let weekBonusAdded = false;
+  if (weekDays >= 6) {
+    weekTotal += RATES.weekBonus;
+    weekBonusAdded = true;
+  }
   
-  // PREVIOUS WEEK
-  const prevWeekStart = new Date(weekStart);
-  prevWeekStart.setDate(weekStart.getDate() - 7);
-  let prevWeekTotal = 0, prevWorkDays = 0;
+  // PREVIOUS WEEK - Monday to Sunday
+  const prevWeekStart = new Date(thisWeekStart);
+  prevWeekStart.setDate(thisWeekStart.getDate() - 7);
+  let prevWeekTotal = 0;
+  let prevWorkDays = 0;
+  let prevOtHours = 0;
+  
   for (let i = 0; i < 7; i++) {
     const d = new Date(prevWeekStart);
     d.setDate(prevWeekStart.getDate() + i);
@@ -402,71 +422,92 @@ async function renderDashboard() {
     if (records[key] && records[key].type !== 'off') {
       prevWeekTotal += calcDay(records[key]);
       prevWorkDays++;
+      prevOtHours += records[key].ot || 0;
     }
   }
   if (prevWorkDays >= 6) prevWeekTotal += RATES.weekBonus;
   
-  // THIS MONTH
-  const tm = today.slice(0,7);
-  let monthTotal = 0, monthWorkDays = 0, monthBonus = 0;
-  const monthRecords = {};
-  Object.entries(records).forEach(([d, v]) => {
-    if (d.startsWith(tm)) monthRecords[d] = v;
-  });
-  const weeksMap = {};
-  Object.entries(monthRecords).forEach(([date, rec]) => {
-    if (rec.type === 'work' || rec.type === 'sunday') {
-      const weekStartKey = formatDateYMD(getWeekStartMonday(new Date(date)));
-      if (!weeksMap[weekStartKey]) weeksMap[weekStartKey] = new Set();
-      weeksMap[weekStartKey].add(date);
-      monthTotal += calcDay(rec);
-      monthWorkDays++;
-    }
-  });
-  Object.values(weeksMap).forEach(days => {
-    if (days.size >= 6) { 
-      monthTotal += RATES.weekBonus; 
-      monthBonus++; 
+  // THIS MONTH - with Monday-based week bonus calculation
+  const currentMonth = todayStr.slice(0,7);
+  let monthTotal = 0;
+  let monthWorkDays = 0;
+  let monthBonusCount = 0;
+  
+  // Group by week (Monday to Sunday)
+  const monthWeeksMap = new Map(); // key: weekStartMonday string, value: Set of dates worked
+  
+  Object.entries(records).forEach(([date, rec]) => {
+    if (date.startsWith(currentMonth)) {
+      if (rec.type === 'work' || rec.type === 'sunday') {
+        monthTotal += calcDay(rec);
+        monthWorkDays++;
+        
+        const dateObj = new Date(date);
+        const weekStart = getWeekStartMonday(dateObj);
+        const weekKey = formatDateYMD(weekStart);
+        if (!monthWeeksMap.has(weekKey)) {
+          monthWeeksMap.set(weekKey, new Set());
+        }
+        monthWeeksMap.get(weekKey).add(date);
+      }
     }
   });
   
-  // ALL TIME
-  let allTotal = 0;
-  Object.values(records).forEach(rec => allTotal += calcDay(rec));
-  
-  // STREAK
-  let streak = 0;
-  const sd = new Date(today);
-  while (true) {
-    const key = formatDateYMD(sd);
-    const r = records[key];
-    if (r && r.type !== 'off') { streak++; sd.setDate(sd.getDate() - 1); }
-    else break;
+  // Calculate month bonuses
+  for (const [weekKey, daysSet] of monthWeeksMap) {
+    if (daysSet.size >= 6) {
+      monthTotal += RATES.weekBonus;
+      monthBonusCount++;
+    }
   }
   
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  // ALL TIME TOTAL
+  let allTotal = 0;
+  Object.values(records).forEach(rec => {
+    allTotal += calcDay(rec);
+  });
   
+  // STREAK (consecutive work days from today backwards)
+  let streak = 0;
+  const checkDate = new Date(today);
+  while (true) {
+    const key = formatDateYMD(checkDate);
+    const rec = records[key];
+    if (rec && rec.type !== 'off') {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  
+  // MONTH PROGRESS
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const totalWorkDaysTarget = daysInMonth; // All days can be work days in our model
+  
+  const progressPercent = Math.min(100, Math.round((monthWorkDays / daysInMonth) * 100));
+  
+  // Update DOM
   document.getElementById('card-today').innerHTML = todayRec ? (todayRec.type === 'off' ? 'Off' : `Rs.${todayEarn.toLocaleString()}`) : '—';
-  document.getElementById('card-today-sub').innerHTML = todayRec ? (todayRec.ot ? `${todayRec.ot}h OT` : '') : 'Not marked';
+  document.getElementById('card-today-sub').innerHTML = todayRec ? (todayRec.ot ? `${todayRec.ot}h OT` : 'Regular') : 'Not marked';
   document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
-  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days (Mon-Sun)`;
+  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days worked${weekBonusAdded ? ' + Bonus!' : ''}`;
   document.getElementById('card-month').innerHTML = `Rs.${monthTotal.toLocaleString()}`;
-  document.getElementById('card-month-sub').innerHTML = `${monthWorkDays} days worked`;
+  document.getElementById('card-month-sub').innerHTML = `${monthWorkDays} days worked (${monthBonusCount} week bonuses)`;
   document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
   document.getElementById('card-streak').innerHTML = streak;
   
   if (prevWeekTotal > 0) {
     document.getElementById('card-prev-week').innerHTML = `Rs.${prevWeekTotal.toLocaleString()}`;
-    document.getElementById('card-prev-week-sub').innerHTML = `${prevWorkDays} days worked (Mon-Sun)`;
+    document.getElementById('card-prev-week-sub').innerHTML = `${prevWorkDays} days worked (${prevOtHours}h OT)`;
   } else {
     document.getElementById('card-prev-week').innerHTML = 'No data';
     document.getElementById('card-prev-week-sub').innerHTML = 'Mark attendance for last week';
   }
   
-  document.getElementById('card-bonus').innerHTML = monthBonus > 0 ? `Rs.${(monthBonus * RATES.weekBonus).toLocaleString()}` : 'Rs.0';
-  
-  const pct = Math.min(100, Math.round((monthWorkDays / daysInMonth) * 100));
-  document.getElementById('month-prog').style.width = pct + '%';
+  document.getElementById('month-prog').style.width = progressPercent + '%';
   document.getElementById('prog-done').innerHTML = monthWorkDays;
   document.getElementById('prog-goal').innerHTML = daysInMonth;
 }
@@ -492,23 +533,29 @@ document.getElementById('btn-save-day').addEventListener('click', async () => {
   const date = document.getElementById('att-date').value;
   const type = document.getElementById('att-type').value;
   const ot = parseFloat(document.getElementById('att-ot').value) || 0;
+  if (!date) { toast('Select a date', true); return; }
   await setDoc(doc(db, 'attendance', date), { type, ot });
-  toast('Saved');
+  toast('Saved ✓');
   renderDashboard();
   if (currentWeekStart) loadWeeklyReportForDate(currentWeekStart);
+  renderHistory();
 });
 
-// RANGE
+// RANGE OPERATIONS
 let previewDays = [];
 document.getElementById('btn-preview-range').addEventListener('click', () => {
   const from = document.getElementById('range-from').value;
   const to = document.getElementById('range-to').value;
-  if (!from || !to) { toast('Select dates', true); return; }
+  if (!from || !to) { toast('Select from & to dates', true); return; }
+  if (from > to) { toast('From must be before To', true); return; }
   const rangeType = document.getElementById('range-type').value;
   const ot = parseFloat(document.getElementById('range-ot').value) || 0;
   const dates = [];
   let d = new Date(from);
-  while (d <= new Date(to)) { dates.push(formatDateYMD(d)); d.setDate(d.getDate() + 1); }
+  while (d <= new Date(to)) {
+    dates.push(formatDateYMD(d));
+    d.setDate(d.getDate() + 1);
+  }
   previewDays = dates.map(date => {
     const dow = new Date(date).getDay();
     let type = null;
@@ -519,19 +566,25 @@ document.getElementById('btn-preview-range').addEventListener('click', () => {
     return type ? { date, type, ot: type === 'off' ? 0 : ot } : null;
   }).filter(Boolean);
   const typeNames = { work: 'Work', sunday: 'Sunday', off: 'Off' };
-  document.getElementById('range-preview').innerHTML = previewDays.map(p => `<div class="range-day-item"><span>${p.date}</span><span>${typeNames[p.type]} ${p.ot ? `+${p.ot}h` : ''}</span></div>`).join('');
+  document.getElementById('range-preview').innerHTML = previewDays.map(p => 
+    `<div class="range-day-item"><span>${p.date}</span><span>${typeNames[p.type]} ${p.ot ? `+${p.ot}h` : ''}</span></div>`
+  ).join('');
+  document.getElementById('range-count').innerHTML = previewDays.length + ' days selected';
   document.getElementById('btn-save-range').style.display = previewDays.length ? 'block' : 'none';
 });
 
 document.getElementById('btn-save-range').addEventListener('click', async () => {
+  if (!previewDays.length) return;
   const batch = writeBatch(db);
   previewDays.forEach(d => batch.set(doc(db, 'attendance', d.date), { type: d.type, ot: d.ot }));
   await batch.commit();
-  toast(`${previewDays.length} days saved`);
+  toast(`${previewDays.length} days saved ✓`);
   document.getElementById('range-preview').innerHTML = '';
   document.getElementById('btn-save-range').style.display = 'none';
+  previewDays = [];
   renderDashboard();
   if (currentWeekStart) loadWeeklyReportForDate(currentWeekStart);
+  renderHistory();
 });
 
 // HISTORY
@@ -540,11 +593,14 @@ async function renderHistory() {
   const sorted = Object.entries(records).sort((a,b) => b[0].localeCompare(a[0]));
   const tbody = document.getElementById('hist-body');
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="6">No records</td></tr>'; return; }
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;">No records yet</td></tr>';
+    return;
+  }
   tbody.innerHTML = sorted.map(([date, rec]) => {
     const earn = calcDay(rec);
     const dayName = dayNames[new Date(date).getDay()];
-    return `</tr>
+    return `<tr>
       <td style="font-family:monospace;">${date}</td>
       <td style="font-size:.75rem;color:var(--sm);">${dayName}</td>
       <td>${rec.type === 'work' ? '💼 Work' : rec.type === 'sunday' ? '☀️ Sunday' : '😴 Off'}</td>
@@ -553,17 +609,37 @@ async function renderHistory() {
       <td><button class="del-btn" data-date="${date}">✕</button></td>
     </tr>`;
   }).join('');
+  
   document.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await deleteDoc(doc(db, 'attendance', btn.dataset.date));
-      toast('Deleted');
-      renderDashboard();
-      renderHistory();
-      if (currentWeekStart) loadWeeklyReportForDate(currentWeekStart);
+      if (confirm('Delete this record?')) {
+        await deleteDoc(doc(db, 'attendance', btn.dataset.date));
+        toast('Deleted');
+        renderDashboard();
+        renderHistory();
+        if (currentWeekStart) loadWeeklyReportForDate(currentWeekStart);
+      }
     });
   });
 }
+
 document.getElementById('hist-filter').addEventListener('change', renderHistory);
+
+// Populate month filter for history
+function populateMonthFilter() {
+  const sel = document.getElementById('hist-filter');
+  const now = new Date();
+  for (let i = 0; i < 13; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = d.toISOString().slice(0,7);
+    const lbl = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = lbl;
+    sel.appendChild(opt);
+  }
+}
+populateMonthFilter();
 </script>
 </body>
 </html>
