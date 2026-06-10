@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Monday to Sunday - Fixed</title>
+<title>Salary Tracker | Clean UI + Week Grouping</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -23,23 +23,32 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .login-err{color:var(--red);font-size:.8rem;text-align:center;margin-top:10px;}
 
 #app{display:none;max-width:560px;margin:0 auto;}
-.app-header{position:sticky;top:0;background:rgba(7,9,15,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:60px;}
+.app-header{position:sticky;top:0;background:rgba(7,9,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:60px;z-index:100;}
 .logout-btn{background:none;border:1px solid var(--bdr);color:var(--mu);padding:6px 14px;border-radius:10px;cursor:pointer;}
 
-.tab-bar{display:flex;padding:0 16px;border-bottom:1px solid var(--bdr);gap:4px;overflow-x:auto;}
+.tab-bar{display:flex;padding:0 16px;border-bottom:1px solid var(--bdr);gap:4px;overflow-x:auto;background:var(--bg);}
 .tab-btn{background:none;border:none;color:var(--mu);font-size:.8rem;font-weight:500;padding:14px 18px;cursor:pointer;border-bottom:2px solid transparent;}
 .tab-btn.active{color:var(--ac);border-bottom-color:var(--ac);}
 .tab-panel{display:none;padding:20px;}
 .tab-panel.active{display:block;}
 
-.card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:16px 18px;margin-bottom:12px;}
+/* Dashboard Cards */
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:16px 18px;}
 .card-val{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:500;}
+.card-val.large{font-size:1.8rem;}
 .card-val.indigo{color:var(--ac);}
 .card-val.green{color:var(--green);}
 .card-val.amber{color:var(--ac2);}
-.card-label{font-size:.65rem;font-weight:600;color:var(--mu);margin-bottom:8px;}
+.card-label{font-size:.65rem;font-weight:600;color:var(--mu);margin-bottom:8px;letter-spacing:.05em;}
 .card-sub{font-size:.7rem;color:var(--mu);margin-top:5px;}
+
+/* All Time Special Card */
+.alltime-card{background:linear-gradient(135deg,var(--card),#0a0f16);border:2px solid var(--ac);border-radius:24px;padding:20px;text-align:center;margin-bottom:20px;}
+.alltime-card .card-label{font-size:.7rem;color:var(--ac);letter-spacing:.1em;}
+.alltime-card .card-val{font-size:2.2rem;font-weight:700;color:var(--green);}
+.alltime-card .card-sub{font-size:.7rem;color:var(--mu);}
+
 .progress-bar{height:6px;background:var(--bdr);border-radius:10px;margin-bottom:6px;}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ac),var(--green));}
 .sec-lbl{font-size:.68rem;font-weight:600;color:var(--mu);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
@@ -62,14 +71,20 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .stat-value{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:600;color:var(--green);}
 .week-breakdown{max-height:280px;overflow-y:auto;}
 .day-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--bdr);font-size:.8rem;}
-.day-row.highlight{background:rgba(99,102,241,.1);}
+.day-row.highlight{background:rgba(99,102,241,.15);border-radius:12px;}
 .badge-bonus{background:rgba(245,158,11,.2);color:var(--ac2);padding:6px 12px;border-radius:20px;font-size:.7rem;text-align:center;margin-top:12px;}
 
 .range-preview{max-height:180px;overflow-y:auto;}
 .range-day-item{display:flex;justify-content:space-between;padding:8px 12px;background:var(--sur);border-radius:12px;margin-bottom:4px;}
+
+/* History with Week Grouping */
+.history-week-group{margin-bottom:20px;}
+.week-header{background:var(--sur);border-left:3px solid var(--ac);padding:10px 15px;margin:8px 0 6px;border-radius:12px;font-size:.75rem;font-weight:600;color:var(--ac);display:flex;justify-content:space-between;align-items:center;}
+.week-header span:first-child{font-family:'DM Mono',monospace;}
+.week-header span:last-child{color:var(--green);}
 .hist-table{width:100%;border-collapse:collapse;}
 .hist-table th,.hist-table td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--bdr);}
-.del-btn{background:none;border:none;color:var(--red);cursor:pointer;}
+.del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;}
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e2a1e;border:1px solid var(--green);color:var(--green);padding:10px 24px;border-radius:40px;opacity:0;transition:all .28s;z-index:999;pointer-events:none;}
 #toast.show{opacity:1;}
 
@@ -95,74 +110,77 @@ input[type="date"]{color-scheme:dark;}
   
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-    <button class="tab-btn" data-tab="weekly">📊 Weekly Report</button>
-    <button class="tab-btn" data-tab="attendance">Attendance</button>
-    <button class="tab-btn" data-tab="history">History</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
+    <button class="tab-btn" data-tab="weekly">📊 Weekly</button>
+    <button class="tab-btn" data-tab="attendance">📝 Attendance</button>
+    <button class="tab-btn" data-tab="history">📜 History</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
   </div>
 
+  <!-- DASHBOARD - All Time big and prominent -->
   <div class="tab-panel active" id="tab-dashboard">
+    <!-- All Time Salary - BIG -->
+    <div class="alltime-card">
+      <div class="card-label">💰 TOTAL EARNED (ALL TIME)</div>
+      <div class="card-val" id="card-total">—</div>
+      <div class="card-sub">lifetime salary</div>
+    </div>
+    
     <div class="cards-grid">
       <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
       <div class="card"><div class="card-label">This Week (Mon-Sun)</div><div class="card-val green" id="card-week">—</div><div class="card-sub" id="card-week-sub"></div></div>
       <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
-      <div class="card"><div class="card-label">All Time</div><div class="card-val indigo" id="card-total">—</div></div>
+      <div class="card"><div class="card-label">Previous Week</div><div class="card-val green" id="card-prev-week">—</div><div class="card-sub" id="card-prev-week-sub"></div></div>
     </div>
-    <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">30</span> days</div></div>
     
-    <div class="cards-grid">
-      <div class="card">
-        <div class="card-label">Previous Week Salary</div>
-        <div class="card-val green" id="card-prev-week">—</div>
-        <div class="card-sub" id="card-prev-week-sub">(Monday → Sunday)</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Streak 🔥</div>
-        <div class="card-val indigo" id="card-streak">—</div>
-        <div class="card-sub">consecutive work days</div>
-      </div>
-    </div>
+    <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">30</span> days worked</div></div>
+    
+    <div class="card"><div class="card-label">🔥 Current Streak</div><div class="card-val indigo" id="card-streak">—</div><div class="card-sub">consecutive work days</div></div>
   </div>
 
+  <!-- WEEKLY REPORT -->
   <div class="tab-panel" id="tab-weekly">
     <div class="weekly-report-card">
-      <div class="sec-lbl" style="margin-top:0;">📅 සතියේ පඩිය බලන්න (Monday → Sunday)</div>
       <div class="week-nav">
-        <button id="prev-week-btn">◀ පෙර සතිය</button>
+        <button id="prev-week-btn">◀ පෙර</button>
         <span id="current-week-label">--</span>
-        <button id="next-week-btn">ඊළඟ සතිය ▶</button>
+        <button id="next-week-btn">ඊළඟ ▶</button>
       </div>
       <div id="week-report-content">
-        <div style="text-align:center;color:var(--mu);padding:20px;">සතියක් තෝරාගැනීමට පෙර/ඊළඟ බොත්තම් භාවිතා කරන්න</div>
+        <div style="text-align:center;color:var(--mu);padding:20px;">සතියක් තෝරන්න</div>
       </div>
     </div>
   </div>
 
+  <!-- ATTENDANCE -->
   <div class="tab-panel" id="tab-attendance">
     <div class="form-card">
-      <div class="frow"><div class="fg"><label>Date</label><input type="date" id="att-date"></div><div class="fg"><label>Type</label><select id="att-type"><option value="work">Work Day</option><option value="sunday">Sunday</option><option value="off">Off Day</option></select></div></div>
-      <div class="frow"><div class="fg"><label>Overtime (hrs)</label><input type="number" id="att-ot" placeholder="0" min="0" step="0.5" value="0"></div><div class="fg"><button class="btn-save" id="btn-save-day">Save Day</button></div></div>
+      <div class="frow"><div class="fg"><label>📅 Date</label><input type="date" id="att-date"></div><div class="fg"><label>📋 Type</label><select id="att-type"><option value="work">💼 Work Day</option><option value="sunday">☀️ Sunday</option><option value="off">😴 Off Day</option></select></div></div>
+      <div class="frow"><div class="fg"><label>⏱️ Overtime (hrs)</label><input type="number" id="att-ot" placeholder="0" min="0" step="0.5" value="0"></div><div class="fg"><button class="btn-save" id="btn-save-day">✓ Save Day</button></div></div>
     </div>
-    <div class="sec-lbl">📆 Date Range</div>
+    <div class="sec-lbl">📆 Date Range (Batch Mark)</div>
     <div class="form-card">
       <div class="frow"><div class="fg"><label>From</label><input type="date" id="range-from"></div><div class="fg"><label>To</label><input type="date" id="range-to"></div></div>
       <div class="frow"><div class="fg"><label>Day Type</label><select id="range-type"><option value="work">Work Days (skip Sun)</option><option value="all-work">All as Work</option><option value="sunday">All as Sunday</option><option value="off">All as Off</option></select></div><div class="fg"><label>OT per day</label><input type="number" id="range-ot" value="0" step="0.5"></div></div>
-      <button class="btn-save" id="btn-preview-range">Preview</button>
+      <button class="btn-save" id="btn-preview-range">👁️ Preview</button>
       <div class="range-preview" id="range-preview"></div>
-      <button class="btn-save" id="btn-save-range" style="display:none;margin-top:12px;background:linear-gradient(135deg,var(--green),#16a34a);">Save All</button>
+      <button class="btn-save" id="btn-save-range" style="display:none;margin-top:12px;background:linear-gradient(135deg,var(--green),#16a34a);">💾 Save All</button>
     </div>
   </div>
 
+  <!-- HISTORY - WITH WEEK GROUPING -->
   <div class="tab-panel" id="tab-history">
-    <select id="hist-filter" style="width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:12px;"><option value="all">All Time</option></select>
-    <div class="table-wrap"><table class="hist-table"><thead><tr><th>Date</th><th>Day</th><th>Type</th><th>OT</th><th>Earned</th><th></th></tr></thead><tbody id="hist-body"></tbody></table></div>
+    <select id="hist-filter" style="width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:16px;">
+      <option value="all">📅 All Time</option>
+    </select>
+    <div id="history-grouped-container"></div>
   </div>
 
+  <!-- SETTINGS -->
   <div class="tab-panel" id="tab-settings">
     <div class="form-card">
       <div class="frow"><div class="fg"><label>Work Day Rate (Rs)</label><input type="number" id="r-daily" value="1750"></div><div class="fg"><label>Sunday Rate (Rs)</label><input type="number" id="r-sunday" value="1750"></div></div>
       <div class="frow"><div class="fg"><label>Overtime (per hr)</label><input type="number" id="r-ot" value="218"></div><div class="fg"><label>Week Bonus (Rs)</label><input type="number" id="r-bonus" value="600"></div></div>
-      <button class="btn-save" id="btn-save-rates">Save Rates</button>
+      <button class="btn-save" id="btn-save-rates">💾 Save Rates</button>
     </div>
   </div>
 </div>
@@ -194,19 +212,17 @@ function toast(msg) {
   setTimeout(() => t.className = '', 2500);
 }
 
-// TABS
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    if (btn.dataset.tab === 'history') renderHistory();
+    if (btn.dataset.tab === 'history') renderHistoryWithGroups();
     if (btn.dataset.tab === 'dashboard') renderDashboard();
   });
 });
 
-// LOGIN
 document.getElementById('btn-login').addEventListener('click', async () => {
   try {
     await signInWithEmailAndPassword(auth, document.getElementById('em').value, document.getElementById('pw').value);
@@ -231,7 +247,6 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-// ========== SIMPLE HELPER FUNCTIONS ==========
 function formatDateYMD(date) {
   let d = new Date(date);
   let year = d.getFullYear();
@@ -247,6 +262,14 @@ function getMondayOfWeek(date) {
   d.setDate(d.getDate() + diff);
   d.setHours(0,0,0,0);
   return d;
+}
+
+function getWeekRangeStr(monday) {
+  let sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  let monStr = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  let sunStr = sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `${monStr} - ${sunStr}`;
 }
 
 function calculateEarning(rec) {
@@ -281,9 +304,9 @@ document.getElementById('btn-save-rates').addEventListener('click', async () => 
   toast('Rates saved');
   renderDashboard();
   if (currentMonday) loadWeeklyReportForDate(currentMonday);
+  renderHistoryWithGroups();
 });
 
-// ========== DASHBOARD ==========
 async function renderDashboard() {
   let records = await getAllRecords();
   let today = new Date();
@@ -291,10 +314,8 @@ async function renderDashboard() {
   let todayRec = records[todayStr];
   let todayEarn = calculateEarning(todayRec);
   
-  // This week (Monday to Sunday)
   let thisMonday = getMondayOfWeek(today);
-  let weekTotal = 0;
-  let weekDays = 0;
+  let weekTotal = 0, weekDays = 0;
   for (let i = 0; i < 7; i++) {
     let d = new Date(thisMonday);
     d.setDate(thisMonday.getDate() + i);
@@ -304,17 +325,12 @@ async function renderDashboard() {
       weekDays++;
     }
   }
-  let weekBonus = false;
-  if (weekDays >= 6) {
-    weekTotal += RATES.weekBonus;
-    weekBonus = true;
-  }
+  let weekBonus = weekDays >= 6;
+  if (weekBonus) weekTotal += RATES.weekBonus;
   
-  // Previous week
   let prevMonday = new Date(thisMonday);
   prevMonday.setDate(thisMonday.getDate() - 7);
-  let prevTotal = 0;
-  let prevDays = 0;
+  let prevTotal = 0, prevDays = 0;
   for (let i = 0; i < 7; i++) {
     let d = new Date(prevMonday);
     d.setDate(prevMonday.getDate() + i);
@@ -326,10 +342,8 @@ async function renderDashboard() {
   }
   if (prevDays >= 6) prevTotal += RATES.weekBonus;
   
-  // This month
   let currentMonth = todayStr.slice(0,7);
-  let monthTotal = 0;
-  let monthDays = 0;
+  let monthTotal = 0, monthDays = 0;
   let monthWeeks = {};
   for (let [date, rec] of Object.entries(records)) {
     if (date.startsWith(currentMonth) && (rec.type === 'work' || rec.type === 'sunday')) {
@@ -337,34 +351,24 @@ async function renderDashboard() {
       monthDays++;
       let d = new Date(date);
       let weekStart = formatDateYMD(getMondayOfWeek(d));
-      if (!monthWeeks[weekStart]) monthWeeks[weekStart] = 0;
-      monthWeeks[weekStart]++;
+      monthWeeks[weekStart] = (monthWeeks[weekStart] || 0) + 1;
     }
   }
   let monthBonusCount = 0;
-  for (let days in monthWeeks) {
-    if (monthWeeks[days] >= 6) {
-      monthTotal += RATES.weekBonus;
-      monthBonusCount++;
-    }
+  for (let days of Object.values(monthWeeks)) {
+    if (days >= 6) { monthTotal += RATES.weekBonus; monthBonusCount++; }
   }
   
-  // All time
   let allTotal = 0;
-  for (let rec of Object.values(records)) {
-    allTotal += calculateEarning(rec);
-  }
+  for (let rec of Object.values(records)) allTotal += calculateEarning(rec);
   
-  // Streak
   let streak = 0;
   let check = new Date(today);
   while (true) {
     let key = formatDateYMD(check);
     let rec = records[key];
-    if (rec && rec.type !== 'off') {
-      streak++;
-      check.setDate(check.getDate() - 1);
-    } else break;
+    if (rec && rec.type !== 'off') { streak++; check.setDate(check.getDate() - 1); }
+    else break;
   }
   
   let daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -385,14 +389,11 @@ async function renderDashboard() {
   document.getElementById('prog-goal').innerHTML = daysInMonth;
 }
 
-// ========== WEEKLY REPORT - SIMPLE AND CORRECT ==========
 let currentMonday = null;
 
 async function loadWeeklyReportForDate(date) {
   currentMonday = getMondayOfWeek(date);
   let monday = new Date(currentMonday);
-  
-  // Format display
   let sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   document.getElementById('current-week-label').innerHTML = `${monday.toLocaleDateString('en-US', {month:'short', day:'numeric'})} - ${sunday.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}`;
@@ -400,87 +401,49 @@ async function loadWeeklyReportForDate(date) {
   let records = await getAllRecords();
   let dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   let dayDetails = [];
-  let weekTotal = 0;
-  let workDays = 0;
-  let totalOt = 0;
+  let weekTotal = 0, workDays = 0, totalOt = 0;
   
   for (let i = 0; i < 7; i++) {
     let d = new Date(monday);
     d.setDate(monday.getDate() + i);
     let dateStr = formatDateYMD(d);
     let rec = records[dateStr];
-    let dayName = dayNames[i];
-    let earned = 0;
-    let type = 'Not marked';
-    let ot = 0;
-    
+    let earned = 0, type = 'Not marked', ot = 0;
     if (rec) {
       ot = rec.ot || 0;
-      if (rec.type === 'work') {
-        earned = RATES.daily + (ot * RATES.ot);
-        type = 'Work';
-        workDays++;
-      } else if (rec.type === 'sunday') {
-        earned = RATES.sunday + (ot * RATES.ot);
-        type = 'Sunday';
-        workDays++;
-      } else {
-        earned = 0;
-        type = 'Off';
-      }
-      totalOt += ot;
-      weekTotal += earned;
+      if (rec.type === 'work') { earned = RATES.daily + (ot * RATES.ot); type = 'Work'; workDays++; }
+      else if (rec.type === 'sunday') { earned = RATES.sunday + (ot * RATES.ot); type = 'Sunday'; workDays++; }
+      else { earned = 0; type = 'Off'; }
+      totalOt += ot; weekTotal += earned;
     }
-    
-    let isToday = (dateStr === formatDateYMD(new Date()));
-    dayDetails.push({ dayName, dateStr, type, ot, earned, isToday });
+    dayDetails.push({ dayName: dayNames[i], dateStr, type, ot, earned, isToday: dateStr === formatDateYMD(new Date()) });
   }
-  
   let gotBonus = false;
-  if (workDays >= 6) {
-    weekTotal += RATES.weekBonus;
-    gotBonus = true;
-  }
+  if (workDays >= 6) { weekTotal += RATES.weekBonus; gotBonus = true; }
   
-  let container = document.getElementById('week-report-content');
-  container.innerHTML = `
+  document.getElementById('week-report-content').innerHTML = `
     <div class="week-stats">
-      <div class="stat-box"><div class="stat-label">Total Salary</div><div class="stat-value" style="color:var(--green);">Rs. ${weekTotal.toLocaleString()}</div></div>
-      <div class="stat-box"><div class="stat-label">Work Days</div><div class="stat-value" style="color:var(--ac);">${workDays}/7</div></div>
-      <div class="stat-box"><div class="stat-label">Total OT Hours</div><div class="stat-value" style="color:var(--ac2);">${totalOt}h</div></div>
-      <div class="stat-box"><div class="stat-label">Week Bonus</div><div class="stat-value" style="color:${gotBonus ? '#10b981' : '#6b7280'};">${gotBonus ? `✅ Rs.${RATES.weekBonus.toLocaleString()}` : 'Need 6 days'}</div></div>
+      <div class="stat-box"><div class="stat-label">Total Salary</div><div class="stat-value">Rs. ${weekTotal.toLocaleString()}</div></div>
+      <div class="stat-box"><div class="stat-label">Work Days</div><div class="stat-value">${workDays}/7</div></div>
+      <div class="stat-box"><div class="stat-label">OT Hours</div><div class="stat-value">${totalOt}h</div></div>
+      <div class="stat-box"><div class="stat-label">Bonus</div><div class="stat-value">${gotBonus ? `✓ Rs.${RATES.weekBonus}` : '—'}</div></div>
     </div>
-    <div class="sec-lbl" style="margin-top:0;">📋 Monday → Sunday Breakdown</div>
     <div class="week-breakdown">
-      ${dayDetails.map(d => `
-        <div class="day-row ${d.isToday ? 'highlight' : ''}">
-          <div><strong>${d.dayName}</strong><br><span style="font-size:.7rem;color:var(--mu);">${d.dateStr}</span>${d.isToday ? ' 🔴 Today' : ''}</div>
-          <div style="color:${d.type === 'Work' ? 'var(--green)' : d.type === 'Sunday' ? 'var(--ac2)' : '#6b7280'};">${d.type}${d.ot > 0 ? ` +${d.ot}h` : ''}</div>
-          <div style="font-weight:600;color:var(--green);">${d.earned > 0 ? `Rs.${d.earned.toLocaleString()}` : '—'}</div>
-        </div>
-      `).join('')}
-    </div>
-    ${gotBonus ? '<div class="badge-bonus">🏆 Weekly Bonus added! (6+ days worked)</div>' : '<div class="badge-bonus" style="background:rgba(100,100,100,.1);">⚠️ Need 6 or more work days for bonus</div>'}
-  `;
+      ${dayDetails.map(d => `<div class="day-row ${d.isToday ? 'highlight' : ''}">
+        <div><strong>${d.dayName}</strong><br><span style="font-size:.7rem;color:var(--mu);">${d.dateStr}</span></div>
+        <div style="color:${d.type === 'Work' ? 'var(--green)' : d.type === 'Sunday' ? 'var(--ac2)' : '#6b7280'};">${d.type}${d.ot > 0 ? ` +${d.ot}h` : ''}</div>
+        <div style="font-weight:600;color:var(--green);">${d.earned > 0 ? `Rs.${d.earned.toLocaleString()}` : '—'}</div>
+      </div>`).join('')}
+    </div>`;
 }
 
 document.getElementById('prev-week-btn').addEventListener('click', () => {
-  if (currentMonday) {
-    let newDate = new Date(currentMonday);
-    newDate.setDate(currentMonday.getDate() - 7);
-    loadWeeklyReportForDate(newDate);
-  }
+  if (currentMonday) { let newDate = new Date(currentMonday); newDate.setDate(currentMonday.getDate() - 7); loadWeeklyReportForDate(newDate); }
 });
-
 document.getElementById('next-week-btn').addEventListener('click', () => {
-  if (currentMonday) {
-    let newDate = new Date(currentMonday);
-    newDate.setDate(currentMonday.getDate() + 7);
-    loadWeeklyReportForDate(newDate);
-  }
+  if (currentMonday) { let newDate = new Date(currentMonday); newDate.setDate(currentMonday.getDate() + 7); loadWeeklyReportForDate(newDate); }
 });
 
-// ========== SINGLE DAY SAVE ==========
 document.getElementById('btn-save-day').addEventListener('click', async () => {
   let date = document.getElementById('att-date').value;
   let type = document.getElementById('att-type').value;
@@ -490,24 +453,17 @@ document.getElementById('btn-save-day').addEventListener('click', async () => {
   toast('Saved ✓');
   renderDashboard();
   if (currentMonday) loadWeeklyReportForDate(currentMonday);
-  renderHistory();
+  renderHistoryWithGroups();
 });
 
-// ========== RANGE ==========
 let previewDays = [];
 document.getElementById('btn-preview-range').addEventListener('click', () => {
-  let from = document.getElementById('range-from').value;
-  let to = document.getElementById('range-to').value;
+  let from = document.getElementById('range-from').value, to = document.getElementById('range-to').value;
   if (!from || !to) { toast('Select dates', true); return; }
-  if (from > to) { toast('From must be before To', true); return; }
   let rangeType = document.getElementById('range-type').value;
   let ot = parseFloat(document.getElementById('range-ot').value) || 0;
-  let dates = [];
-  let d = new Date(from);
-  while (d <= new Date(to)) {
-    dates.push(formatDateYMD(d));
-    d.setDate(d.getDate() + 1);
-  }
+  let dates = [], d = new Date(from);
+  while (d <= new Date(to)) { dates.push(formatDateYMD(d)); d.setDate(d.getDate() + 1); }
   previewDays = dates.map(date => {
     let dow = new Date(date).getDay();
     let type = null;
@@ -518,9 +474,7 @@ document.getElementById('btn-preview-range').addEventListener('click', () => {
     return type ? { date, type, ot: type === 'off' ? 0 : ot } : null;
   }).filter(Boolean);
   let typeNames = { work: 'Work', sunday: 'Sunday', off: 'Off' };
-  document.getElementById('range-preview').innerHTML = previewDays.map(p => 
-    `<div class="range-day-item"><span>${p.date}</span><span>${typeNames[p.type]} ${p.ot ? `+${p.ot}h` : ''}</span></div>`
-  ).join('');
+  document.getElementById('range-preview').innerHTML = previewDays.map(p => `<div class="range-day-item"><span>${p.date}</span><span>${typeNames[p.type]} ${p.ot ? `+${p.ot}h` : ''}</span></div>`).join('');
   document.getElementById('btn-save-range').style.display = previewDays.length ? 'block' : 'none';
 });
 
@@ -535,33 +489,76 @@ document.getElementById('btn-save-range').addEventListener('click', async () => 
   previewDays = [];
   renderDashboard();
   if (currentMonday) loadWeeklyReportForDate(currentMonday);
-  renderHistory();
+  renderHistoryWithGroups();
 });
 
-// ========== HISTORY ==========
-async function renderHistory() {
+// HISTORY WITH WEEK GROUPING
+async function renderHistoryWithGroups() {
   let records = await getAllRecords();
-  let sorted = Object.entries(records).sort((a,b) => b[0].localeCompare(a[0]));
-  let tbody = document.getElementById('hist-body');
-  let dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let filter = document.getElementById('hist-filter').value;
+  let filtered = {};
+  for (let [date, rec] of Object.entries(records)) {
+    if (filter === 'all' || date.startsWith(filter)) filtered[date] = rec;
+  }
   
-  if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;">No records yet</td></tr>';
+  let sorted = Object.entries(filtered).sort((a,b) => b[0].localeCompare(a[0]));
+  if (sorted.length === 0) {
+    document.getElementById('history-grouped-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--mu);">No records yet</div>';
     return;
   }
   
-  tbody.innerHTML = sorted.map(([date, rec]) => {
-    let earn = calculateEarning(rec);
-    let dayName = dayNames[new Date(date).getDay()];
-    return `<tr>
-      <td style="font-family:monospace;">${date}</td>
-      <td style="font-size:.75rem;color:var(--sm);">${dayName}</td>
-      <td>${rec.type === 'work' ? '💼 Work' : rec.type === 'sunday' ? '☀️ Sunday' : '😴 Off'}</td>
-      <td>${rec.ot ? rec.ot + 'h' : '-'}</td>
-      <td style="color:var(--green);">${earn > 0 ? 'Rs.' + earn.toLocaleString() : '-'}</td>
-      <td><button class="del-btn" data-date="${date}">✕</button></td>
-    </table>`;
-  }).join('');
+  // Group by week (Monday to Sunday)
+  let weeksMap = new Map();
+  let dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  for (let [date, rec] of sorted) {
+    let dateObj = new Date(date);
+    let weekMonday = getMondayOfWeek(dateObj);
+    let weekKey = formatDateYMD(weekMonday);
+    if (!weeksMap.has(weekKey)) {
+      weeksMap.set(weekKey, { monday: weekMonday, records: [] });
+    }
+    weeksMap.get(weekKey).records.push({ date, rec });
+  }
+  
+  // Sort weeks by date (newest first)
+  let sortedWeeks = Array.from(weeksMap.keys()).sort((a,b) => b.localeCompare(a));
+  
+  let html = '';
+  for (let weekKey of sortedWeeks) {
+    let weekData = weeksMap.get(weekKey);
+    let weekRange = getWeekRangeStr(weekData.monday);
+    let weekTotal = 0;
+    for (let item of weekData.records) {
+      weekTotal += calculateEarning(item.rec);
+    }
+    
+    html += `<div class="history-week-group">
+      <div class="week-header">
+        <span>📅 ${weekRange}</span>
+        <span>💰 Rs. ${weekTotal.toLocaleString()}</span>
+      </div>
+      <table class="hist-table">
+        <tbody>`;
+    
+    for (let item of weekData.records) {
+      let earn = calculateEarning(item.rec);
+      let dateObj = new Date(item.date);
+      let dayName = dayNames[dateObj.getDay()];
+      html += `<tr>
+        <td style="font-family:monospace;">${item.date}</td>
+        <td style="font-size:.7rem;color:var(--sm);">${dayName}</td>
+        <td>${item.rec.type === 'work' ? '💼 Work' : item.rec.type === 'sunday' ? '☀️ Sunday' : '😴 Off'}</td>
+        <td>${item.rec.ot ? item.rec.ot + 'h' : '-'}</td>
+        <td style="color:var(--green);font-weight:500;">${earn > 0 ? 'Rs.' + earn.toLocaleString() : '-'}</td>
+        <td><button class="del-btn" data-date="${item.date}">✕</button></td>
+      </tr>`;
+    }
+    
+    html += `</tbody></table></div>`;
+  }
+  
+  document.getElementById('history-grouped-container').innerHTML = html;
   
   document.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -569,7 +566,7 @@ async function renderHistory() {
         await deleteDoc(doc(db, 'attendance', btn.dataset.date));
         toast('Deleted');
         renderDashboard();
-        renderHistory();
+        renderHistoryWithGroups();
         if (currentMonday) loadWeeklyReportForDate(currentMonday);
       }
     });
@@ -579,7 +576,7 @@ async function renderHistory() {
 function populateMonthFilter() {
   let sel = document.getElementById('hist-filter');
   let now = new Date();
-  sel.innerHTML = '<option value="all">All Time</option>';
+  sel.innerHTML = '<option value="all">📅 All Time</option>';
   for (let i = 0; i < 13; i++) {
     let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     let val = d.toISOString().slice(0,7);
@@ -591,7 +588,7 @@ function populateMonthFilter() {
   }
 }
 
-document.getElementById('hist-filter').addEventListener('change', renderHistory);
+document.getElementById('hist-filter').addEventListener('change', renderHistoryWithGroups);
 </script>
 </body>
 </html>
