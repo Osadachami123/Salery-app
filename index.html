@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | Current Week Highlight</title>
+<title>Salary Tracker | PDF Pay Sheet + Weekly Reports</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   --bg:#05070c;--sur:#0a0f16;--card:#0f1622;--bdr:#1e293b;
   --ac:#6366f1;--ac2:#f59e0b;--green:#10b981;--red:#f43f5e;
-  --tx:#f1f5f9;--mu:#6b7280;--sm:#94a3b8;
+  --purple:#a855f7;--tx:#f1f5f9;--mu:#6b7280;--sm:#94a3b8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:15px;}
@@ -36,27 +38,22 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:16px 18px;position:relative;}
 .card-val{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:500;}
-.card-val.large{font-size:1.8rem;}
-.card-val.indigo{color:var(--ac);}
-.card-val.green{color:var(--green);}
-.card-val.amber{color:var(--ac2);}
 .card-label{font-size:.65rem;font-weight:600;color:var(--mu);margin-bottom:8px;letter-spacing:.05em;}
 .card-sub{font-size:.7rem;color:var(--mu);margin-top:5px;}
 
-/* All Time Special Card */
-.alltime-card{background:linear-gradient(135deg,var(--card),#0a0f16);border:2px solid var(--ac);border-radius:24px;padding:20px;text-align:center;margin-bottom:20px;}
-.alltime-card .card-label{font-size:.7rem;color:var(--ac);letter-spacing:.1em;}
+/* All Time Card - GREEN */
+.alltime-card{background:linear-gradient(135deg,var(--card),#0a0f16);border:2px solid var(--green);border-radius:24px;padding:20px;text-align:center;margin-bottom:20px;}
+.alltime-card .card-label{font-size:.7rem;color:var(--green);letter-spacing:.1em;}
 .alltime-card .card-val{font-size:2.2rem;font-weight:700;color:var(--green);}
 .alltime-card .card-sub{font-size:.7rem;color:var(--mu);}
 
-/* ========== NEW: Current Week Card Styles ========== */
+/* Current Week Card - PURPLE */
 .current-week-card {
-  border: 2px solid var(--green);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), var(--card));
+  border: 2px solid var(--purple);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), var(--card));
   position: relative;
   overflow: hidden;
 }
-
 .current-week-card::before {
   content: '';
   position: absolute;
@@ -64,34 +61,33 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
   right: 0;
   width: 100px;
   height: 100px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.12), transparent);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.12), transparent);
   border-radius: 50%;
   transform: translate(40px, -40px);
   pointer-events: none;
 }
-
 .week-badge {
   position: absolute;
   top: 12px;
   right: 16px;
-  background: var(--green);
-  color: #05070c;
+  background: var(--purple);
+  color: white;
   font-size: 0.65rem;
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 20px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
   z-index: 2;
 }
+.current-week-card .card-val { color: var(--purple); }
 
-/* ========== NEW: Previous Week Card Styles ========== */
+/* Previous Week Card - GRAY FADED */
 .previous-week-card {
   border: 1.5px solid rgba(107, 114, 128, 0.35);
   background: rgba(15, 22, 34, 0.7);
   position: relative;
 }
-
 .previous-week-card .week-badge.previous {
   background: rgba(107, 114, 128, 0.25);
   color: var(--mu);
@@ -104,34 +100,13 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
   padding: 4px 10px;
   border-radius: 20px;
 }
+.previous-week-card .card-val { color: var(--mu); opacity: 0.7; }
+.previous-week-card .card-sub { color: rgba(107, 114, 128, 0.5); }
+.previous-week-card:hover { opacity: 1; border-color: rgba(107, 114, 128, 0.6); }
+.previous-week-card:hover .card-val { opacity: 1; color: var(--sm); }
 
-.previous-week-card .card-val {
-  color: var(--mu);
-  opacity: 0.7;
-}
+.cards-grid-single { display: block; width: 100%; margin-bottom: 16px; }
 
-.previous-week-card .card-sub {
-  color: rgba(107, 114, 128, 0.5);
-}
-
-.previous-week-card:hover {
-  opacity: 1;
-  border-color: rgba(107, 114, 128, 0.6);
-  transition: all 0.2s ease;
-}
-
-.previous-week-card:hover .card-val {
-  opacity: 1;
-  color: var(--sm);
-}
-
-.cards-grid-single {
-  display: block;
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-/* Progress */
 .progress-bar{height:6px;background:var(--bdr);border-radius:10px;margin-bottom:6px;}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ac),var(--green));}
 .sec-lbl{font-size:.68rem;font-weight:600;color:var(--mu);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
@@ -144,10 +119,13 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .btn-save{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:600;padding:12px;border:none;border-radius:14px;cursor:pointer;width:100%;}
 
 .weekly-report-card{background:linear-gradient(135deg,#0f1622,#0a0f16);border:2px solid var(--ac);border-radius:24px;padding:20px;margin-bottom:20px;}
-.week-nav{display:flex;gap:10px;margin-bottom:20px;align-items:center;justify-content:space-between;}
+.week-nav{display:flex;gap:10px;margin-bottom:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
 .week-nav button{background:var(--sur);border:1.5px solid var(--bdr);color:var(--tx);padding:10px 16px;border-radius:12px;cursor:pointer;font-size:.8rem;}
 .week-nav button:hover{border-color:var(--ac);}
 .week-nav span{font-family:'DM Mono',monospace;font-size:.85rem;background:var(--sur);padding:8px 16px;border-radius:20px;}
+.download-btn{background:linear-gradient(135deg,var(--green),#16a34a);color:white;border:none;padding:10px 20px;border-radius:12px;cursor:pointer;font-size:.75rem;font-weight:600;}
+.download-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
 .week-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 .stat-box{text-align:center;padding:12px;background:var(--sur);border-radius:16px;}
 .stat-label{font-size:.65rem;color:var(--mu);}
@@ -160,11 +138,8 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .range-preview{max-height:180px;overflow-y:auto;}
 .range-day-item{display:flex;justify-content:space-between;padding:8px 12px;background:var(--sur);border-radius:12px;margin-bottom:4px;}
 
-/* History with Week Grouping */
 .history-week-group{margin-bottom:20px;}
 .week-header{background:var(--sur);border-left:3px solid var(--ac);padding:10px 15px;margin:8px 0 6px;border-radius:12px;font-size:.75rem;font-weight:600;color:var(--ac);display:flex;justify-content:space-between;align-items:center;}
-.week-header span:first-child{font-family:'DM Mono',monospace;}
-.week-header span:last-child{color:var(--green);}
 .hist-table{width:100%;border-collapse:collapse;}
 .hist-table th,.hist-table td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--bdr);}
 .del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;}
@@ -199,26 +174,23 @@ input[type="date"]{color-scheme:dark;}
     <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
   </div>
 
-  <!-- DASHBOARD - UPDATED with Current Week Highlight -->
+  <!-- DASHBOARD -->
   <div class="tab-panel active" id="tab-dashboard">
-    <!-- All Time Salary - BIG -->
     <div class="alltime-card">
       <div class="card-label">💰 TOTAL EARNED (ALL TIME)</div>
       <div class="card-val" id="card-total">—</div>
       <div class="card-sub">lifetime salary</div>
     </div>
     
-    <!-- CURRENT WEEK CARD - Green border + Badge -->
     <div class="cards-grid-single">
       <div class="card current-week-card">
         <div class="week-badge">● CURRENT WEEK</div>
         <div class="card-label">This Week (Monday → Sunday)</div>
-        <div class="card-val green" id="card-week" style="font-size: 1.5rem;">—</div>
+        <div class="card-val" id="card-week" style="font-size: 1.5rem;">—</div>
         <div class="card-sub" id="card-week-sub"></div>
       </div>
     </div>
     
-    <!-- PREVIOUS WEEK CARD - Gray border + Faded -->
     <div class="cards-grid-single">
       <div class="card previous-week-card">
         <div class="week-badge previous">◀ PREVIOUS WEEK</div>
@@ -228,7 +200,6 @@ input[type="date"]{color-scheme:dark;}
       </div>
     </div>
     
-    <!-- Other Stats -->
     <div class="cards-grid">
       <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
       <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
@@ -237,13 +208,14 @@ input[type="date"]{color-scheme:dark;}
     </div>
   </div>
 
-  <!-- WEEKLY REPORT -->
+  <!-- WEEKLY REPORT with PDF Download -->
   <div class="tab-panel" id="tab-weekly">
     <div class="weekly-report-card">
       <div class="week-nav">
         <button id="prev-week-btn">◀ පෙර</button>
         <span id="current-week-label">--</span>
         <button id="next-week-btn">ඊළඟ ▶</button>
+        <button id="download-pdf-btn" class="download-btn" style="margin-left:auto;">📄 Download Pay Sheet (PDF)</button>
       </div>
       <div id="week-report-content">
         <div style="text-align:center;color:var(--mu);padding:20px;">සතියක් තෝරන්න</div>
@@ -267,7 +239,7 @@ input[type="date"]{color-scheme:dark;}
     </div>
   </div>
 
-  <!-- HISTORY - WITH WEEK GROUPING -->
+  <!-- HISTORY -->
   <div class="tab-panel" id="tab-history">
     <select id="hist-filter" style="width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:16px;">
       <option value="all">📅 All Time</option>
@@ -414,9 +386,8 @@ async function renderDashboard() {
   let todayRec = records[todayStr];
   let todayEarn = calculateEarning(todayRec);
   
-  // THIS WEEK
   let thisMonday = getMondayOfWeek(today);
-  let weekTotal = 0, weekDays = 0, weekOt = 0;
+  let weekTotal = 0, weekDays = 0;
   for (let i = 0; i < 7; i++) {
     let d = new Date(thisMonday);
     d.setDate(thisMonday.getDate() + i);
@@ -424,13 +395,11 @@ async function renderDashboard() {
     if (records[key] && records[key].type !== 'off') {
       weekTotal += calculateEarning(records[key]);
       weekDays++;
-      weekOt += records[key].ot || 0;
     }
   }
   let weekBonus = weekDays >= 6;
   if (weekBonus) weekTotal += RATES.weekBonus;
   
-  // PREVIOUS WEEK
   let prevMonday = new Date(thisMonday);
   prevMonday.setDate(thisMonday.getDate() - 7);
   let prevTotal = 0, prevDays = 0;
@@ -443,10 +412,8 @@ async function renderDashboard() {
       prevDays++;
     }
   }
-  let prevBonus = prevDays >= 6;
-  if (prevBonus) prevTotal += RATES.weekBonus;
+  if (prevDays >= 6) prevTotal += RATES.weekBonus;
   
-  // THIS MONTH
   let currentMonth = todayStr.slice(0,7);
   let monthTotal = 0, monthDays = 0;
   let monthWeeks = {};
@@ -464,11 +431,9 @@ async function renderDashboard() {
     if (days >= 6) { monthTotal += RATES.weekBonus; monthBonusCount++; }
   }
   
-  // ALL TIME
   let allTotal = 0;
   for (let rec of Object.values(records)) allTotal += calculateEarning(rec);
   
-  // STREAK
   let streak = 0;
   let check = new Date(today);
   while (true) {
@@ -481,7 +446,6 @@ async function renderDashboard() {
   let daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   let percent = Math.min(100, Math.round((monthDays / daysInMonth) * 100));
   
-  // Update DOM
   document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
   document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
   document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days${weekBonus ? ' + Bonus!' : ''}`;
@@ -498,6 +462,7 @@ async function renderDashboard() {
 }
 
 let currentMonday = null;
+let currentWeekData = null;
 
 async function loadWeeklyReportForDate(date) {
   currentMonday = getMondayOfWeek(date);
@@ -529,6 +494,18 @@ async function loadWeeklyReportForDate(date) {
   let gotBonus = false;
   if (workDays >= 6) { weekTotal += RATES.weekBonus; gotBonus = true; }
   
+  // Store for PDF
+  currentWeekData = { monday, dayDetails, weekTotal, workDays, totalOt, gotBonus };
+  
+  // Check if this week is completed (Sunday passed)
+  let today = new Date();
+  let isWeekCompleted = today > sunday;
+  let downloadBtn = document.getElementById('download-pdf-btn');
+  if (downloadBtn) {
+    downloadBtn.disabled = !isWeekCompleted;
+    downloadBtn.title = isWeekCompleted ? 'Download PDF Pay Sheet' : 'Pay sheet available only for completed weeks';
+  }
+  
   document.getElementById('week-report-content').innerHTML = `
     <div class="week-stats">
       <div class="stat-box"><div class="stat-label">Total Salary</div><div class="stat-value">Rs. ${weekTotal.toLocaleString()}</div></div>
@@ -542,8 +519,89 @@ async function loadWeeklyReportForDate(date) {
         <div style="color:${d.type === 'Work' ? 'var(--green)' : d.type === 'Sunday' ? 'var(--ac2)' : '#6b7280'};">${d.type}${d.ot > 0 ? ` +${d.ot}h` : ''}</div>
         <div style="font-weight:600;color:var(--green);">${d.earned > 0 ? `Rs.${d.earned.toLocaleString()}` : '—'}</div>
       </div>`).join('')}
-    </div>`;
+    </div>
+    ${!isWeekCompleted ? '<div class="badge-bonus" style="background:rgba(100,100,100,.1);">📄 PDF available after week ends (Sunday)</div>' : ''}
+    ${gotBonus ? '<div class="badge-bonus">🏆 Weekly Bonus added!</div>' : ''}
+  `;
 }
+
+// PDF Download Function
+document.getElementById('download-pdf-btn')?.addEventListener('click', async () => {
+  if (!currentWeekData) { toast('No data to download', true); return; }
+  
+  let today = new Date();
+  let sunday = new Date(currentWeekData.monday);
+  sunday.setDate(currentWeekData.monday.getDate() + 6);
+  
+  if (today <= sunday) {
+    toast('Pay sheet available only for completed weeks!', true);
+    return;
+  }
+  
+  toast('Generating PDF...');
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  let weekStartStr = currentWeekData.monday.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  let weekEndStr = sunday.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  
+  doc.setFontSize(18);
+  doc.setTextColor(99, 102, 241);
+  doc.text('SALARY PAY SHEET', 105, 20, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Week Period: ${weekStartStr} - ${weekEndStr}`, 105, 35, { align: 'center' });
+  
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  
+  let y = 55;
+  doc.setFillColor(240, 240, 250);
+  doc.rect(15, y-5, 180, 8, 'F');
+  doc.setTextColor(50, 50, 80);
+  doc.text('Day', 20, y);
+  doc.text('Date', 60, y);
+  doc.text('Type', 100, y);
+  doc.text('OT (hrs)', 130, y);
+  doc.text('Amount (Rs.)', 160, y);
+  
+  y += 10;
+  doc.setTextColor(60, 60, 80);
+  
+  for (let day of currentWeekData.dayDetails) {
+    doc.text(day.dayName, 20, y);
+    doc.text(day.dateStr, 60, y);
+    doc.text(day.type, 100, y);
+    doc.text(day.ot > 0 ? day.ot.toString() : '-', 130, y);
+    doc.text(day.earned > 0 ? day.earned.toLocaleString() : '-', 160, y);
+    y += 7;
+    if (y > 270) { doc.addPage(); y = 20; }
+  }
+  
+  y += 10;
+  doc.setDrawColor(150, 150, 150);
+  doc.line(15, y-3, 195, y-3);
+  
+  doc.setFontSize(11);
+  doc.setTextColor(80, 80, 120);
+  doc.text(`Total Work Days: ${currentWeekData.workDays} / 7`, 20, y+5);
+  doc.text(`Total OT Hours: ${currentWeekData.totalOt} hrs`, 20, y+12);
+  doc.text(`Week Bonus: ${currentWeekData.gotBonus ? `Rs. ${RATES.weekBonus.toLocaleString()}` : 'Not earned'}`, 20, y+19);
+  
+  doc.setFontSize(14);
+  doc.setTextColor(16, 185, 129);
+  doc.text(`GRAND TOTAL: Rs. ${currentWeekData.weekTotal.toLocaleString()}`, 105, y+30, { align: 'center' });
+  
+  doc.setFontSize(9);
+  doc.setTextColor(150, 150, 150);
+  doc.text('Generated by Salary Tracker App', 105, 285, { align: 'center' });
+  
+  let fileName = `paysheet_${currentWeekData.monday.toISOString().slice(0,10)}_to_${sunday.toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  toast('PDF Downloaded!');
+});
 
 document.getElementById('prev-week-btn').addEventListener('click', () => {
   if (currentMonday) { let newDate = new Date(currentMonday); newDate.setDate(currentMonday.getDate() - 7); loadWeeklyReportForDate(newDate); }
@@ -660,7 +718,7 @@ async function renderHistoryWithGroups() {
       </tr>`;
     }
     
-    html += `</tbody><table></div>`;
+    html += `</tbody></table></div>`;
   }
   
   document.getElementById('history-grouped-container').innerHTML = html;
