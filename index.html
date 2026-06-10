@@ -2,11 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Salary Tracker | PDF Pay Sheet + Weekly Reports</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<title>Salary Tracker | PWA App</title>
+
+<!-- PWA Meta Tags -->
+<link rel="manifest" href="data:application/manifest+json,{
+  %22name%22: %22Salary Tracker%22,
+  %22short_name%22: %22SalaryTrack%22,
+  %22description%22: %22Track your daily salary, overtime, and weekly earnings%22,
+  %22start_url%22: %22/%22,
+  %22display%22: %22standalone%22,
+  %22theme_color%22: %22%236366f1%22,
+  %22background_color%22: %22%2305070c%22,
+  %22orientation%22: %22portrait%22,
+  %22icons%22: [
+    { %22src%22: %22https://via.placeholder.com/72x72?text=💰%22, %22sizes%22: %2272x72%22, %22type%22: %22image/png%22 },
+    { %22src%22: %22https://via.placeholder.com/96x96?text=💰%22, %22sizes%22: %2296x96%22, %22type%22: %22image/png%22 },
+    { %22src%22: %22https://via.placeholder.com/128x128?text=💰%22, %22sizes%22: %22128x128%22, %22type%22: %22image/png%22 },
+    { %22src%22: %22https://via.placeholder.com/144x144?text=💰%22, %22sizes%22: %22144x144%22, %22type%22: %22image/png%22 },
+    { %22src%22: %22https://via.placeholder.com/152x152?text=💰%22, %22sizes%22: %22152x152%22, %22type%22: %22image/png%22 },
+    { %22src%22: %22https://via.placeholder.com/192x192?text=💰%22, %22sizes%22: %22192x192%22, %22type%22: %22image/png%22 },
+    { %22src%22: %22https://via.placeholder.com/512x512?text=💰%22, %22sizes%22: %22512x512%22, %22type%22: %22image/png%22 }
+  ]
+}">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Salary Tracker">
+<link rel="apple-touch-icon" href="https://via.placeholder.com/192x192?text=💰">
+
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <style>
 :root{
   --bg:#05070c;--sur:#0a0f16;--card:#0f1622;--bdr:#1e293b;
@@ -14,7 +41,7 @@
   --purple:#a855f7;--tx:#f1f5f9;--mu:#6b7280;--sm:#94a3b8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:15px;}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:15px;-webkit-tap-highlight-color:transparent;}
 
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;z-index:1;}
 .login-box{background:rgba(15,22,34,.95);backdrop-filter:blur(8px);border:1px solid rgba(99,102,241,.4);border-radius:40px;padding:44px 40px;width:100%;max-width:400px;}
@@ -24,91 +51,39 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .btn-primary{width:100%;background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:600;padding:14px;border:none;border-radius:14px;cursor:pointer;}
 .login-err{color:var(--red);font-size:.8rem;text-align:center;margin-top:10px;}
 
-#app{display:none;max-width:560px;margin:0 auto;}
+#app{display:none;max-width:560px;margin:0 auto;padding-bottom:20px;}
 .app-header{position:sticky;top:0;background:rgba(7,9,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:60px;z-index:100;}
 .logout-btn{background:none;border:1px solid var(--bdr);color:var(--mu);padding:6px 14px;border-radius:10px;cursor:pointer;}
+.install-btn{background:var(--green);border:none;color:#05070c;padding:6px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:.7rem;margin-right:8px;display:none;}
 
 .tab-bar{display:flex;padding:0 16px;border-bottom:1px solid var(--bdr);gap:4px;overflow-x:auto;background:var(--bg);}
-.tab-btn{background:none;border:none;color:var(--mu);font-size:.8rem;font-weight:500;padding:14px 18px;cursor:pointer;border-bottom:2px solid transparent;}
+.tab-btn{background:none;border:none;color:var(--mu);font-size:.8rem;font-weight:500;padding:14px 18px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
 .tab-btn.active{color:var(--ac);border-bottom-color:var(--ac);}
 .tab-panel{display:none;padding:20px;}
 .tab-panel.active{display:block;}
 
-/* Dashboard Cards */
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .card{background:var(--card);border:1px solid var(--bdr);border-radius:24px;padding:16px 18px;position:relative;}
 .card-val{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:500;}
 .card-label{font-size:.65rem;font-weight:600;color:var(--mu);margin-bottom:8px;letter-spacing:.05em;}
 .card-sub{font-size:.7rem;color:var(--mu);margin-top:5px;}
 
-/* All Time Card - GREEN */
 .alltime-card{background:linear-gradient(135deg,var(--card),#0a0f16);border:2px solid var(--green);border-radius:24px;padding:20px;text-align:center;margin-bottom:20px;}
 .alltime-card .card-label{font-size:.7rem;color:var(--green);letter-spacing:.1em;}
 .alltime-card .card-val{font-size:2.2rem;font-weight:700;color:var(--green);}
-.alltime-card .card-sub{font-size:.7rem;color:var(--mu);}
 
-/* Current Week Card - PURPLE */
-.current-week-card {
-  border: 2px solid var(--purple);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), var(--card));
-  position: relative;
-  overflow: hidden;
-}
-.current-week-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.12), transparent);
-  border-radius: 50%;
-  transform: translate(40px, -40px);
-  pointer-events: none;
-}
-.week-badge {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: var(--purple);
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
-  z-index: 2;
-}
-.current-week-card .card-val { color: var(--purple); }
+.current-week-card{border:2px solid var(--purple);background:linear-gradient(135deg,rgba(168,85,247,.08),var(--card));position:relative;overflow:hidden;}
+.current-week-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;background:radial-gradient(circle,rgba(168,85,247,.12),transparent);border-radius:50%;transform:translate(40px,-40px);}
+.week-badge{position:absolute;top:12px;right:16px;background:var(--purple);color:#fff;font-size:.65rem;font-weight:700;padding:4px 12px;border-radius:20px;z-index:2;}
+.current-week-card .card-val{color:var(--purple);}
 
-/* Previous Week Card - GRAY FADED */
-.previous-week-card {
-  border: 1.5px solid rgba(107, 114, 128, 0.35);
-  background: rgba(15, 22, 34, 0.7);
-  position: relative;
-}
-.previous-week-card .week-badge.previous {
-  background: rgba(107, 114, 128, 0.25);
-  color: var(--mu);
-  box-shadow: none;
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 0.6rem;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-.previous-week-card .card-val { color: var(--mu); opacity: 0.7; }
-.previous-week-card .card-sub { color: rgba(107, 114, 128, 0.5); }
-.previous-week-card:hover { opacity: 1; border-color: rgba(107, 114, 128, 0.6); }
-.previous-week-card:hover .card-val { opacity: 1; color: var(--sm); }
+.previous-week-card{border:1.5px solid rgba(107,114,128,.35);background:rgba(15,22,34,.7);}
+.previous-week-card .week-badge.previous{background:rgba(107,114,128,.25);color:var(--mu);position:absolute;top:12px;right:16px;font-size:.6rem;padding:4px 10px;border-radius:20px;}
+.previous-week-card .card-val{color:var(--mu);opacity:.7;}
+.cards-grid-single{display:block;width:100%;margin-bottom:16px;}
 
-.cards-grid-single { display: block; width: 100%; margin-bottom: 16px; }
-
-.progress-bar{height:6px;background:var(--bdr);border-radius:10px;margin-bottom:6px;}
-.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ac),var(--green));}
+.progress-bar{height:6px;background:var(--bdr);border-radius:10px;margin-bottom:6px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ac),var(--green));width:0%;}
 .sec-lbl{font-size:.68rem;font-weight:600;color:var(--mu);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
 .sec-lbl::after{content:'';flex:1;height:1px;background:var(--bdr);}
 
@@ -119,13 +94,11 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 .btn-save{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;font-weight:600;padding:12px;border:none;border-radius:14px;cursor:pointer;width:100%;}
 
 .weekly-report-card{background:linear-gradient(135deg,#0f1622,#0a0f16);border:2px solid var(--ac);border-radius:24px;padding:20px;margin-bottom:20px;}
-.week-nav{display:flex;gap:10px;margin-bottom:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.week-nav{display:flex;gap:10px;margin-bottom:20px;align-items:center;flex-wrap:wrap;}
 .week-nav button{background:var(--sur);border:1.5px solid var(--bdr);color:var(--tx);padding:10px 16px;border-radius:12px;cursor:pointer;font-size:.8rem;}
-.week-nav button:hover{border-color:var(--ac);}
 .week-nav span{font-family:'DM Mono',monospace;font-size:.85rem;background:var(--sur);padding:8px 16px;border-radius:20px;}
 .download-btn{background:linear-gradient(135deg,var(--green),#16a34a);color:white;border:none;padding:10px 20px;border-radius:12px;cursor:pointer;font-size:.75rem;font-weight:600;}
 .download-btn:disabled{opacity:0.5;cursor:not-allowed;}
-
 .week-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 .stat-box{text-align:center;padding:12px;background:var(--sur);border-radius:16px;}
 .stat-label{font-size:.65rem;color:var(--mu);}
@@ -137,15 +110,13 @@ body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-h
 
 .range-preview{max-height:180px;overflow-y:auto;}
 .range-day-item{display:flex;justify-content:space-between;padding:8px 12px;background:var(--sur);border-radius:12px;margin-bottom:4px;}
-
 .history-week-group{margin-bottom:20px;}
 .week-header{background:var(--sur);border-left:3px solid var(--ac);padding:10px 15px;margin:8px 0 6px;border-radius:12px;font-size:.75rem;font-weight:600;color:var(--ac);display:flex;justify-content:space-between;align-items:center;}
 .hist-table{width:100%;border-collapse:collapse;}
 .hist-table th,.hist-table td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--bdr);}
 .del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;}
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e2a1e;border:1px solid var(--green);color:var(--green);padding:10px 24px;border-radius:40px;opacity:0;transition:all .28s;z-index:999;pointer-events:none;}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e2a1e;border:1px solid var(--green);color:var(--green);padding:10px 24px;border-radius:40px;opacity:0;transition:all .28s;z-index:999;pointer-events:none;white-space:nowrap;}
 #toast.show{opacity:1;}
-
 input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0.8);cursor:pointer;}
 input[type="date"]{color-scheme:dark;}
 </style>
@@ -164,72 +135,69 @@ input[type="date"]{color-scheme:dark;}
 </div>
 
 <div id="app">
-  <header class="app-header"><span style="font-weight:700;">💰 Salary Tracker</span><button class="logout-btn" id="btn-logout">Logout</button></header>
+  <header class="app-header">
+    <span style="font-weight:700;">💰 Salary Tracker</span>
+    <div style="display:flex;gap:8px;">
+      <button class="install-btn" id="install-btn" style="display:none;">📲 Install App</button>
+      <button class="logout-btn" id="btn-logout">Logout</button>
+    </div>
+  </header>
   
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
     <button class="tab-btn" data-tab="weekly">📊 Weekly</button>
-    <button class="tab-btn" data-tab="attendance">📝 Attendance</button>
+    <button class="tab-btn" data-tab="attendance">📝 Mark</button>
     <button class="tab-btn" data-tab="history">📜 History</button>
-    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+    <button class="tab-btn" data-tab="settings">⚙️</button>
   </div>
 
-  <!-- DASHBOARD -->
   <div class="tab-panel active" id="tab-dashboard">
     <div class="alltime-card">
       <div class="card-label">💰 TOTAL EARNED (ALL TIME)</div>
       <div class="card-val" id="card-total">—</div>
-      <div class="card-sub">lifetime salary</div>
     </div>
-    
     <div class="cards-grid-single">
       <div class="card current-week-card">
         <div class="week-badge">● CURRENT WEEK</div>
-        <div class="card-label">This Week (Monday → Sunday)</div>
-        <div class="card-val" id="card-week" style="font-size: 1.5rem;">—</div>
+        <div class="card-label">This Week (Mon → Sun)</div>
+        <div class="card-val" id="card-week" style="font-size:1.5rem;">—</div>
         <div class="card-sub" id="card-week-sub"></div>
       </div>
     </div>
-    
     <div class="cards-grid-single">
       <div class="card previous-week-card">
         <div class="week-badge previous">◀ PREVIOUS WEEK</div>
-        <div class="card-label">Last Week (Monday → Sunday)</div>
-        <div class="card-val" id="card-prev-week" style="font-size: 1.2rem;">—</div>
-        <div class="card-sub faded" id="card-prev-week-sub"></div>
+        <div class="card-label">Last Week (Mon → Sun)</div>
+        <div class="card-val" id="card-prev-week" style="font-size:1.2rem;">—</div>
+        <div class="card-sub" id="card-prev-week-sub"></div>
       </div>
     </div>
-    
     <div class="cards-grid">
       <div class="card"><div class="card-label">Today</div><div class="card-val indigo" id="card-today">—</div><div class="card-sub" id="card-today-sub"></div></div>
       <div class="card"><div class="card-label">This Month</div><div class="card-val amber" id="card-month">—</div><div class="card-sub" id="card-month-sub"></div></div>
-      <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog" style="width:0%"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">30</span> days</div></div>
+      <div class="card"><div class="card-label">Monthly Progress</div><div class="progress-bar"><div class="progress-fill" id="month-prog"></div></div><div class="card-sub"><span id="prog-done">0</span> / <span id="prog-goal">30</span> days</div></div>
       <div class="card"><div class="card-label">🔥 Streak</div><div class="card-val indigo" id="card-streak">—</div><div class="card-sub">consecutive days</div></div>
     </div>
   </div>
 
-  <!-- WEEKLY REPORT with PDF Download -->
   <div class="tab-panel" id="tab-weekly">
     <div class="weekly-report-card">
       <div class="week-nav">
         <button id="prev-week-btn">◀ පෙර</button>
         <span id="current-week-label">--</span>
         <button id="next-week-btn">ඊළඟ ▶</button>
-        <button id="download-pdf-btn" class="download-btn" style="margin-left:auto;">📄 Download Pay Sheet (PDF)</button>
+        <button id="download-pdf-btn" class="download-btn" style="margin-left:auto;">📄 Download PDF</button>
       </div>
-      <div id="week-report-content">
-        <div style="text-align:center;color:var(--mu);padding:20px;">සතියක් තෝරන්න</div>
-      </div>
+      <div id="week-report-content"><div style="text-align:center;color:var(--mu);padding:20px;">සතියක් තෝරන්න</div></div>
     </div>
   </div>
 
-  <!-- ATTENDANCE -->
   <div class="tab-panel" id="tab-attendance">
     <div class="form-card">
       <div class="frow"><div class="fg"><label>📅 Date</label><input type="date" id="att-date"></div><div class="fg"><label>📋 Type</label><select id="att-type"><option value="work">💼 Work Day</option><option value="sunday">☀️ Sunday</option><option value="off">😴 Off Day</option></select></div></div>
       <div class="frow"><div class="fg"><label>⏱️ Overtime (hrs)</label><input type="number" id="att-ot" placeholder="0" min="0" step="0.5" value="0"></div><div class="fg"><button class="btn-save" id="btn-save-day">✓ Save Day</button></div></div>
     </div>
-    <div class="sec-lbl">📆 Date Range (Batch Mark)</div>
+    <div class="sec-lbl">📆 Date Range</div>
     <div class="form-card">
       <div class="frow"><div class="fg"><label>From</label><input type="date" id="range-from"></div><div class="fg"><label>To</label><input type="date" id="range-to"></div></div>
       <div class="frow"><div class="fg"><label>Day Type</label><select id="range-type"><option value="work">Work Days (skip Sun)</option><option value="all-work">All as Work</option><option value="sunday">All as Sunday</option><option value="off">All as Off</option></select></div><div class="fg"><label>OT per day</label><input type="number" id="range-ot" value="0" step="0.5"></div></div>
@@ -239,20 +207,21 @@ input[type="date"]{color-scheme:dark;}
     </div>
   </div>
 
-  <!-- HISTORY -->
   <div class="tab-panel" id="tab-history">
-    <select id="hist-filter" style="width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:16px;">
-      <option value="all">📅 All Time</option>
-    </select>
+    <select id="hist-filter" style="width:100%;background:var(--sur);border:1.5px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:16px;"><option value="all">📅 All Time</option></select>
     <div id="history-grouped-container"></div>
   </div>
 
-  <!-- SETTINGS -->
   <div class="tab-panel" id="tab-settings">
     <div class="form-card">
-      <div class="frow"><div class="fg"><label>Work Day Rate (Rs)</label><input type="number" id="r-daily" value="1750"></div><div class="fg"><label>Sunday Rate (Rs)</label><input type="number" id="r-sunday" value="1750"></div></div>
-      <div class="frow"><div class="fg"><label>Overtime (per hr)</label><input type="number" id="r-ot" value="218"></div><div class="fg"><label>Week Bonus (Rs)</label><input type="number" id="r-bonus" value="600"></div></div>
+      <div class="frow"><div class="fg"><label>Work Day (Rs)</label><input type="number" id="r-daily" value="1750"></div><div class="fg"><label>Sunday (Rs)</label><input type="number" id="r-sunday" value="1750"></div></div>
+      <div class="frow"><div class="fg"><label>OT (per hr)</label><input type="number" id="r-ot" value="218"></div><div class="fg"><label>Week Bonus</label><input type="number" id="r-bonus" value="600"></div></div>
       <button class="btn-save" id="btn-save-rates">💾 Save Rates</button>
+    </div>
+    <div class="sec-lbl">📱 App Info</div>
+    <div class="card" style="text-align:center;">
+      <div class="card-sub" style="margin-top:0;">Version 2.0 | PWA Ready</div>
+      <div class="card-sub">Install this app to home screen for easy access</div>
     </div>
   </div>
 </div>
@@ -282,6 +251,28 @@ function toast(msg) {
   t.textContent = msg;
   t.className = 'show';
   setTimeout(() => t.className = '', 2500);
+}
+
+// PWA Install
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'block';
+});
+document.getElementById('install-btn')?.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') console.log('App installed');
+    deferredPrompt = null;
+    document.getElementById('install-btn').style.display = 'none';
+  }
+});
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -321,12 +312,8 @@ onAuthStateChanged(auth, user => {
 
 function formatDateYMD(date) {
   let d = new Date(date);
-  let year = d.getFullYear();
-  let month = String(d.getMonth() + 1).padStart(2, '0');
-  let day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-
 function getMondayOfWeek(date) {
   let d = new Date(date);
   let day = d.getDay();
@@ -335,29 +322,22 @@ function getMondayOfWeek(date) {
   d.setHours(0,0,0,0);
   return d;
 }
-
 function getWeekRangeStr(monday) {
   let sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  let monStr = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  let sunStr = sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return `${monStr} - ${sunStr}`;
+  return `${monday.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - ${sunday.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
 }
-
 function calculateEarning(rec) {
   if (!rec || rec.type === 'off') return 0;
   let base = rec.type === 'sunday' ? RATES.sunday : RATES.daily;
-  let ot = rec.ot || 0;
-  return base + (ot * RATES.ot);
+  return base + ((rec.ot || 0) * RATES.ot);
 }
-
 async function getAllRecords() {
   let snap = await getDocs(collection(db, 'attendance'));
   let map = {};
   snap.forEach(d => map[d.id] = d.data());
   return map;
 }
-
 async function loadRates() {
   let s = await getDoc(doc(db, 'settings', 'rates'));
   if (s.exists()) RATES = { ...RATES, ...s.data() };
@@ -366,7 +346,6 @@ async function loadRates() {
   document.getElementById('r-sunday').value = RATES.sunday;
   document.getElementById('r-bonus').value = RATES.weekBonus;
 }
-
 document.getElementById('btn-save-rates').addEventListener('click', async () => {
   RATES.daily = +document.getElementById('r-daily').value;
   RATES.ot = +document.getElementById('r-ot').value;
@@ -376,7 +355,6 @@ document.getElementById('btn-save-rates').addEventListener('click', async () => 
   toast('Rates saved');
   renderDashboard();
   if (currentMonday) loadWeeklyReportForDate(currentMonday);
-  renderHistoryWithGroups();
 });
 
 async function renderDashboard() {
@@ -384,28 +362,24 @@ async function renderDashboard() {
   let today = new Date();
   let todayStr = formatDateYMD(today);
   let todayRec = records[todayStr];
-  let todayEarn = calculateEarning(todayRec);
-  
   let thisMonday = getMondayOfWeek(today);
   let weekTotal = 0, weekDays = 0;
-  for (let i = 0; i < 7; i++) {
+  for (let i=0;i<7;i++) {
     let d = new Date(thisMonday);
-    d.setDate(thisMonday.getDate() + i);
+    d.setDate(thisMonday.getDate()+i);
     let key = formatDateYMD(d);
     if (records[key] && records[key].type !== 'off') {
       weekTotal += calculateEarning(records[key]);
       weekDays++;
     }
   }
-  let weekBonus = weekDays >= 6;
-  if (weekBonus) weekTotal += RATES.weekBonus;
-  
+  if (weekDays >= 6) weekTotal += RATES.weekBonus;
   let prevMonday = new Date(thisMonday);
-  prevMonday.setDate(thisMonday.getDate() - 7);
+  prevMonday.setDate(thisMonday.getDate()-7);
   let prevTotal = 0, prevDays = 0;
-  for (let i = 0; i < 7; i++) {
+  for (let i=0;i<7;i++) {
     let d = new Date(prevMonday);
-    d.setDate(prevMonday.getDate() + i);
+    d.setDate(prevMonday.getDate()+i);
     let key = formatDateYMD(d);
     if (records[key] && records[key].type !== 'off') {
       prevTotal += calculateEarning(records[key]);
@@ -413,79 +387,64 @@ async function renderDashboard() {
     }
   }
   if (prevDays >= 6) prevTotal += RATES.weekBonus;
-  
   let currentMonth = todayStr.slice(0,7);
-  let monthTotal = 0, monthDays = 0;
-  let monthWeeks = {};
+  let monthTotal = 0, monthDays = 0, monthWeeks = {};
   for (let [date, rec] of Object.entries(records)) {
     if (date.startsWith(currentMonth) && (rec.type === 'work' || rec.type === 'sunday')) {
       monthTotal += calculateEarning(rec);
       monthDays++;
-      let d = new Date(date);
-      let weekStart = formatDateYMD(getMondayOfWeek(d));
+      let weekStart = formatDateYMD(getMondayOfWeek(new Date(date)));
       monthWeeks[weekStart] = (monthWeeks[weekStart] || 0) + 1;
     }
   }
   let monthBonusCount = 0;
-  for (let days of Object.values(monthWeeks)) {
-    if (days >= 6) { monthTotal += RATES.weekBonus; monthBonusCount++; }
-  }
-  
+  for (let days of Object.values(monthWeeks)) if (days >= 6) { monthTotal += RATES.weekBonus; monthBonusCount++; }
   let allTotal = 0;
   for (let rec of Object.values(records)) allTotal += calculateEarning(rec);
-  
-  let streak = 0;
-  let check = new Date(today);
+  let streak = 0, check = new Date(today);
   while (true) {
     let key = formatDateYMD(check);
     let rec = records[key];
-    if (rec && rec.type !== 'off') { streak++; check.setDate(check.getDate() - 1); }
+    if (rec && rec.type !== 'off') { streak++; check.setDate(check.getDate()-1); }
     else break;
   }
-  
-  let daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  let percent = Math.min(100, Math.round((monthDays / daysInMonth) * 100));
-  
+  let daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  let percent = Math.min(100, Math.round((monthDays/daysInMonth)*100));
   document.getElementById('card-total').innerHTML = `Rs.${allTotal.toLocaleString()}`;
   document.getElementById('card-week').innerHTML = `Rs.${weekTotal.toLocaleString()}`;
-  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days${weekBonus ? ' + Bonus!' : ''}`;
-  document.getElementById('card-prev-week').innerHTML = prevTotal > 0 ? `Rs.${prevTotal.toLocaleString()}` : '—';
-  document.getElementById('card-prev-week-sub').innerHTML = prevDays > 0 ? `${prevDays} days worked` : 'No data';
-  document.getElementById('card-today').innerHTML = todayRec ? (todayRec.type === 'off' ? 'Off' : `Rs.${todayEarn.toLocaleString()}`) : '—';
-  document.getElementById('card-today-sub').innerHTML = todayRec ? (todayRec.ot ? `${todayRec.ot}h OT` : 'Regular') : 'Not marked';
+  document.getElementById('card-week-sub').innerHTML = `${weekDays}/7 days${weekDays>=6?' +Bonus':''}`;
+  document.getElementById('card-prev-week').innerHTML = prevTotal>0?`Rs.${prevTotal.toLocaleString()}`:'—';
+  document.getElementById('card-prev-week-sub').innerHTML = prevDays>0?`${prevDays} days`:'No data';
+  document.getElementById('card-today').innerHTML = todayRec?(todayRec.type==='off'?'Off':`Rs.${calculateEarning(todayRec).toLocaleString()}`):'—';
+  document.getElementById('card-today-sub').innerHTML = todayRec?(todayRec.ot?`${todayRec.ot}h OT`:''):'Not marked';
   document.getElementById('card-month').innerHTML = `Rs.${monthTotal.toLocaleString()}`;
   document.getElementById('card-month-sub').innerHTML = `${monthDays} days (${monthBonusCount} bonuses)`;
   document.getElementById('card-streak').innerHTML = streak;
-  document.getElementById('month-prog').style.width = percent + '%';
+  document.getElementById('month-prog').style.width = percent+'%';
   document.getElementById('prog-done').innerHTML = monthDays;
   document.getElementById('prog-goal').innerHTML = daysInMonth;
 }
 
-let currentMonday = null;
-let currentWeekData = null;
-
+let currentMonday = null, currentWeekData = null;
 async function loadWeeklyReportForDate(date) {
   currentMonday = getMondayOfWeek(date);
   let monday = new Date(currentMonday);
   let sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  document.getElementById('current-week-label').innerHTML = `${monday.toLocaleDateString('en-US', {month:'short', day:'numeric'})} - ${sunday.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}`;
-  
+  sunday.setDate(monday.getDate()+6);
+  document.getElementById('current-week-label').innerHTML = getWeekRangeStr(monday);
   let records = await getAllRecords();
-  let dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  let dayDetails = [];
-  let weekTotal = 0, workDays = 0, totalOt = 0;
-  
-  for (let i = 0; i < 7; i++) {
+  let dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  let dayDetails = [], weekTotal = 0, workDays = 0, totalOt = 0;
+  for (let i=0;i<7;i++) {
     let d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    d.setDate(monday.getDate()+i);
     let dateStr = formatDateYMD(d);
     let rec = records[dateStr];
     let earned = 0, type = 'Not marked', ot = 0;
     if (rec) {
       ot = rec.ot || 0;
-      if (rec.type === 'work') { earned = RATES.daily + (ot * RATES.ot); type = 'Work'; workDays++; }
-      else if (rec.type === 'sunday') { earned = RATES.sunday + (ot * RATES.ot); type = 'Sunday'; workDays++; }
+      if (rec.type === 'work') { earned = RATES.daily + (ot*RATES.ot); type = 'Work'; workDays++; }
+      else if (rec.type === 'sunday') { earned = RATES.sunday + (ot*RATES.ot); type = 'Sunday'; workDays++; }
       else { earned = 0; type = 'Off'; }
       totalOt += ot; weekTotal += earned;
     }
@@ -493,168 +452,96 @@ async function loadWeeklyReportForDate(date) {
   }
   let gotBonus = false;
   if (workDays >= 6) { weekTotal += RATES.weekBonus; gotBonus = true; }
-  
-  // Store for PDF
   currentWeekData = { monday, dayDetails, weekTotal, workDays, totalOt, gotBonus };
-  
-  // Check if this week is completed (Sunday passed)
-  let today = new Date();
-  let isWeekCompleted = today > sunday;
+  let isWeekCompleted = new Date() > sunday;
   let downloadBtn = document.getElementById('download-pdf-btn');
-  if (downloadBtn) {
-    downloadBtn.disabled = !isWeekCompleted;
-    downloadBtn.title = isWeekCompleted ? 'Download PDF Pay Sheet' : 'Pay sheet available only for completed weeks';
-  }
-  
+  if (downloadBtn) { downloadBtn.disabled = !isWeekCompleted; }
   document.getElementById('week-report-content').innerHTML = `
     <div class="week-stats">
       <div class="stat-box"><div class="stat-label">Total Salary</div><div class="stat-value">Rs. ${weekTotal.toLocaleString()}</div></div>
       <div class="stat-box"><div class="stat-label">Work Days</div><div class="stat-value">${workDays}/7</div></div>
       <div class="stat-box"><div class="stat-label">OT Hours</div><div class="stat-value">${totalOt}h</div></div>
-      <div class="stat-box"><div class="stat-label">Bonus</div><div class="stat-value">${gotBonus ? `✓ Rs.${RATES.weekBonus}` : '—'}</div></div>
+      <div class="stat-box"><div class="stat-label">Bonus</div><div class="stat-value">${gotBonus?`✓ Rs.${RATES.weekBonus}`:'—'}</div></div>
     </div>
-    <div class="week-breakdown">
-      ${dayDetails.map(d => `<div class="day-row ${d.isToday ? 'highlight' : ''}">
-        <div><strong>${d.dayName}</strong><br><span style="font-size:.7rem;color:var(--mu);">${d.dateStr}</span></div>
-        <div style="color:${d.type === 'Work' ? 'var(--green)' : d.type === 'Sunday' ? 'var(--ac2)' : '#6b7280'};">${d.type}${d.ot > 0 ? ` +${d.ot}h` : ''}</div>
-        <div style="font-weight:600;color:var(--green);">${d.earned > 0 ? `Rs.${d.earned.toLocaleString()}` : '—'}</div>
-      </div>`).join('')}
-    </div>
-    ${!isWeekCompleted ? '<div class="badge-bonus" style="background:rgba(100,100,100,.1);">📄 PDF available after week ends (Sunday)</div>' : ''}
-    ${gotBonus ? '<div class="badge-bonus">🏆 Weekly Bonus added!</div>' : ''}
+    <div class="week-breakdown">${dayDetails.map(d => `<div class="day-row ${d.isToday?'highlight':''}"><div><strong>${d.dayName}</strong><br><span style="font-size:.7rem;color:var(--mu);">${d.dateStr}</span></div><div style="color:${d.type==='Work'?'var(--green)':d.type==='Sunday'?'var(--ac2)':'#6b7280'};">${d.type}${d.ot?` +${d.ot}h`:''}</div><div style="font-weight:600;color:var(--green);">${d.earned?`Rs.${d.earned.toLocaleString()}`:'—'}</div></div>`).join('')}</div>
+    ${!isWeekCompleted?'<div class="badge-bonus">📄 PDF available after week ends (Sunday)</div>':''}
+    ${gotBonus?'<div class="badge-bonus">🏆 Weekly Bonus added!</div>':''}
   `;
 }
 
-// PDF Download Function
 document.getElementById('download-pdf-btn')?.addEventListener('click', async () => {
-  if (!currentWeekData) { toast('No data to download', true); return; }
-  
-  let today = new Date();
+  if (!currentWeekData) return;
   let sunday = new Date(currentWeekData.monday);
-  sunday.setDate(currentWeekData.monday.getDate() + 6);
-  
-  if (today <= sunday) {
-    toast('Pay sheet available only for completed weeks!', true);
-    return;
-  }
-  
+  sunday.setDate(currentWeekData.monday.getDate()+6);
+  if (new Date() <= sunday) { toast('Available only for completed weeks!', true); return; }
   toast('Generating PDF...');
-  
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  
-  let weekStartStr = currentWeekData.monday.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
-  let weekEndStr = sunday.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
-  
-  doc.setFontSize(18);
-  doc.setTextColor(99, 102, 241);
-  doc.text('SALARY PAY SHEET', 105, 20, { align: 'center' });
-  
-  doc.setFontSize(12);
-  doc.setTextColor(100, 100, 100);
-  doc.text(`Week Period: ${weekStartStr} - ${weekEndStr}`, 105, 35, { align: 'center' });
-  
-  doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0);
-  
+  let weekStartStr = currentWeekData.monday.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  let weekEndStr = sunday.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  doc.setFontSize(18); doc.setTextColor(99,102,241); doc.text('SALARY PAY SHEET', 105, 20, { align: 'center' });
+  doc.setFontSize(12); doc.setTextColor(100,100,100); doc.text(`${weekStartStr} - ${weekEndStr}`, 105, 35, { align: 'center' });
   let y = 55;
-  doc.setFillColor(240, 240, 250);
-  doc.rect(15, y-5, 180, 8, 'F');
-  doc.setTextColor(50, 50, 80);
-  doc.text('Day', 20, y);
-  doc.text('Date', 60, y);
-  doc.text('Type', 100, y);
-  doc.text('OT (hrs)', 130, y);
-  doc.text('Amount (Rs.)', 160, y);
-  
+  doc.setFillColor(240,240,250); doc.rect(15, y-5, 180, 8, 'F');
+  doc.setTextColor(50,50,80); doc.text('Day', 20, y); doc.text('Date', 60, y); doc.text('Type', 100, y); doc.text('OT', 130, y); doc.text('Amount', 160, y);
   y += 10;
-  doc.setTextColor(60, 60, 80);
-  
   for (let day of currentWeekData.dayDetails) {
-    doc.text(day.dayName, 20, y);
-    doc.text(day.dateStr, 60, y);
-    doc.text(day.type, 100, y);
-    doc.text(day.ot > 0 ? day.ot.toString() : '-', 130, y);
-    doc.text(day.earned > 0 ? day.earned.toLocaleString() : '-', 160, y);
+    doc.text(day.dayName, 20, y); doc.text(day.dateStr, 60, y); doc.text(day.type, 100, y); doc.text(day.ot>0?day.ot.toString():'-', 130, y); doc.text(day.earned>0?day.earned.toLocaleString():'-', 160, y);
     y += 7;
     if (y > 270) { doc.addPage(); y = 20; }
   }
-  
-  y += 10;
-  doc.setDrawColor(150, 150, 150);
-  doc.line(15, y-3, 195, y-3);
-  
-  doc.setFontSize(11);
-  doc.setTextColor(80, 80, 120);
-  doc.text(`Total Work Days: ${currentWeekData.workDays} / 7`, 20, y+5);
-  doc.text(`Total OT Hours: ${currentWeekData.totalOt} hrs`, 20, y+12);
-  doc.text(`Week Bonus: ${currentWeekData.gotBonus ? `Rs. ${RATES.weekBonus.toLocaleString()}` : 'Not earned'}`, 20, y+19);
-  
-  doc.setFontSize(14);
-  doc.setTextColor(16, 185, 129);
-  doc.text(`GRAND TOTAL: Rs. ${currentWeekData.weekTotal.toLocaleString()}`, 105, y+30, { align: 'center' });
-  
-  doc.setFontSize(9);
-  doc.setTextColor(150, 150, 150);
-  doc.text('Generated by Salary Tracker App', 105, 285, { align: 'center' });
-  
-  let fileName = `paysheet_${currentWeekData.monday.toISOString().slice(0,10)}_to_${sunday.toISOString().slice(0,10)}.pdf`;
-  doc.save(fileName);
+  y += 10; doc.line(15, y-3, 195, y-3);
+  doc.setFontSize(11); doc.setTextColor(80,80,120);
+  doc.text(`Work Days: ${currentWeekData.workDays}/7`, 20, y+5);
+  doc.text(`OT Hours: ${currentWeekData.totalOt} hrs`, 20, y+12);
+  doc.text(`Bonus: ${currentWeekData.gotBonus?`Rs.${RATES.weekBonus}`:'Not earned'}`, 20, y+19);
+  doc.setFontSize(14); doc.setTextColor(16,185,129);
+  doc.text(`TOTAL: Rs. ${currentWeekData.weekTotal.toLocaleString()}`, 105, y+30, { align: 'center' });
+  doc.save(`paysheet_${formatDateYMD(currentWeekData.monday)}.pdf`);
   toast('PDF Downloaded!');
 });
 
-document.getElementById('prev-week-btn').addEventListener('click', () => {
-  if (currentMonday) { let newDate = new Date(currentMonday); newDate.setDate(currentMonday.getDate() - 7); loadWeeklyReportForDate(newDate); }
-});
-document.getElementById('next-week-btn').addEventListener('click', () => {
-  if (currentMonday) { let newDate = new Date(currentMonday); newDate.setDate(currentMonday.getDate() + 7); loadWeeklyReportForDate(newDate); }
-});
-
+document.getElementById('prev-week-btn').addEventListener('click', () => { if(currentMonday){ let nd=new Date(currentMonday); nd.setDate(currentMonday.getDate()-7); loadWeeklyReportForDate(nd); } });
+document.getElementById('next-week-btn').addEventListener('click', () => { if(currentMonday){ let nd=new Date(currentMonday); nd.setDate(currentMonday.getDate()+7); loadWeeklyReportForDate(nd); } });
 document.getElementById('btn-save-day').addEventListener('click', async () => {
-  let date = document.getElementById('att-date').value;
-  let type = document.getElementById('att-type').value;
-  let ot = parseFloat(document.getElementById('att-ot').value) || 0;
-  if (!date) { toast('Select a date', true); return; }
-  await setDoc(doc(db, 'attendance', date), { type, ot });
+  let date = document.getElementById('att-date').value, type = document.getElementById('att-type').value, ot = parseFloat(document.getElementById('att-ot').value)||0;
+  if(!date){ toast('Select date',true); return; }
+  await setDoc(doc(db,'attendance',date),{type,ot});
   toast('Saved ✓');
   renderDashboard();
-  if (currentMonday) loadWeeklyReportForDate(currentMonday);
+  if(currentMonday) loadWeeklyReportForDate(currentMonday);
   renderHistoryWithGroups();
 });
 
 let previewDays = [];
 document.getElementById('btn-preview-range').addEventListener('click', () => {
   let from = document.getElementById('range-from').value, to = document.getElementById('range-to').value;
-  if (!from || !to) { toast('Select dates', true); return; }
-  let rangeType = document.getElementById('range-type').value;
-  let ot = parseFloat(document.getElementById('range-ot').value) || 0;
+  if(!from||!to){ toast('Select dates',true); return; }
+  let rangeType = document.getElementById('range-type').value, ot = parseFloat(document.getElementById('range-ot').value)||0;
   let dates = [], d = new Date(from);
-  while (d <= new Date(to)) { dates.push(formatDateYMD(d)); d.setDate(d.getDate() + 1); }
-  previewDays = dates.map(date => {
-    let dow = new Date(date).getDay();
-    let type = null;
-    if (rangeType === 'work') type = dow === 0 ? null : 'work';
-    else if (rangeType === 'all-work') type = 'work';
-    else if (rangeType === 'sunday') type = 'sunday';
+  while(d <= new Date(to)){ dates.push(formatDateYMD(d)); d.setDate(d.getDate()+1); }
+  previewDays = dates.map(date => { let dow = new Date(date).getDay(); let type = null;
+    if(rangeType === 'work') type = dow===0?null:'work';
+    else if(rangeType === 'all-work') type = 'work';
+    else if(rangeType === 'sunday') type = 'sunday';
     else type = 'off';
-    return type ? { date, type, ot: type === 'off' ? 0 : ot } : null;
+    return type ? {date,type,ot:type==='off'?0:ot} : null;
   }).filter(Boolean);
-  let typeNames = { work: 'Work', sunday: 'Sunday', off: 'Off' };
-  document.getElementById('range-preview').innerHTML = previewDays.map(p => `<div class="range-day-item"><span>${p.date}</span><span>${typeNames[p.type]} ${p.ot ? `+${p.ot}h` : ''}</span></div>`).join('');
-  document.getElementById('btn-save-range').style.display = previewDays.length ? 'block' : 'none';
+  let tn={work:'Work',sunday:'Sunday',off:'Off'};
+  document.getElementById('range-preview').innerHTML = previewDays.map(p=>`<div class="range-day-item"><span>${p.date}</span><span>${tn[p.type]} ${p.ot?`+${p.ot}h`:''}</span></div>`).join('');
+  document.getElementById('btn-save-range').style.display = previewDays.length?'block':'none';
 });
-
 document.getElementById('btn-save-range').addEventListener('click', async () => {
-  if (!previewDays.length) return;
+  if(!previewDays.length) return;
   let batch = writeBatch(db);
-  previewDays.forEach(d => batch.set(doc(db, 'attendance', d.date), { type: d.type, ot: d.ot }));
+  previewDays.forEach(d=>batch.set(doc(db,'attendance',d.date),{type:d.type,ot:d.ot}));
   await batch.commit();
   toast(`${previewDays.length} days saved ✓`);
   document.getElementById('range-preview').innerHTML = '';
   document.getElementById('btn-save-range').style.display = 'none';
   previewDays = [];
   renderDashboard();
-  if (currentMonday) loadWeeklyReportForDate(currentMonday);
+  if(currentMonday) loadWeeklyReportForDate(currentMonday);
   renderHistoryWithGroups();
 });
 
@@ -662,96 +549,42 @@ async function renderHistoryWithGroups() {
   let records = await getAllRecords();
   let filter = document.getElementById('hist-filter').value;
   let filtered = {};
-  for (let [date, rec] of Object.entries(records)) {
-    if (filter === 'all' || date.startsWith(filter)) filtered[date] = rec;
-  }
-  
-  let sorted = Object.entries(filtered).sort((a,b) => b[0].localeCompare(a[0]));
-  if (sorted.length === 0) {
-    document.getElementById('history-grouped-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--mu);">No records yet</div>';
-    return;
-  }
-  
+  for(let [date,rec] of Object.entries(records)) if(filter==='all'||date.startsWith(filter)) filtered[date]=rec;
+  let sorted = Object.entries(filtered).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(sorted.length===0){ document.getElementById('history-grouped-container').innerHTML='<div style="text-align:center;padding:40px;color:var(--mu);">No records</div>'; return; }
   let weeksMap = new Map();
-  let dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
-  for (let [date, rec] of sorted) {
-    let dateObj = new Date(date);
-    let weekMonday = getMondayOfWeek(dateObj);
+  let dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  for(let [date,rec] of sorted){
+    let weekMonday = getMondayOfWeek(new Date(date));
     let weekKey = formatDateYMD(weekMonday);
-    if (!weeksMap.has(weekKey)) {
-      weeksMap.set(weekKey, { monday: weekMonday, records: [] });
-    }
-    weeksMap.get(weekKey).records.push({ date, rec });
+    if(!weeksMap.has(weekKey)) weeksMap.set(weekKey,{monday:weekMonday,records:[]});
+    weeksMap.get(weekKey).records.push({date,rec});
   }
-  
-  let sortedWeeks = Array.from(weeksMap.keys()).sort((a,b) => b.localeCompare(a));
-  
+  let sortedWeeks = Array.from(weeksMap.keys()).sort((a,b)=>b.localeCompare(a));
   let html = '';
-  for (let weekKey of sortedWeeks) {
+  for(let weekKey of sortedWeeks){
     let weekData = weeksMap.get(weekKey);
     let weekRange = getWeekRangeStr(weekData.monday);
     let weekTotal = 0;
-    for (let item of weekData.records) {
-      weekTotal += calculateEarning(item.rec);
-    }
-    
-    html += `<div class="history-week-group">
-      <div class="week-header">
-        <span>📅 ${weekRange}</span>
-        <span>💰 Rs. ${weekTotal.toLocaleString()}</span>
-      </div>
-      <table class="hist-table">
-        <tbody>`;
-    
-    for (let item of weekData.records) {
+    for(let item of weekData.records) weekTotal += calculateEarning(item.rec);
+    html += `<div class="history-week-group"><div class="week-header"><span>📅 ${weekRange}</span><span>💰 Rs.${weekTotal.toLocaleString()}</span></div><table class="hist-table"><tbody>`;
+    for(let item of weekData.records){
       let earn = calculateEarning(item.rec);
-      let dateObj = new Date(item.date);
-      let dayName = dayNames[dateObj.getDay()];
-      html += `<tr>
-        <td style="font-family:monospace;">${item.date}</td>
-        <td style="font-size:.7rem;color:var(--sm);">${dayName}</td>
-        <td>${item.rec.type === 'work' ? '💼 Work' : item.rec.type === 'sunday' ? '☀️ Sunday' : '😴 Off'}</td>
-        <td>${item.rec.ot ? item.rec.ot + 'h' : '-'}</td>
-        <td style="color:var(--green);font-weight:500;">${earn > 0 ? 'Rs.' + earn.toLocaleString() : '-'}</td>
-        <td><button class="del-btn" data-date="${item.date}">✕</button></td>
-      </tr>`;
+      let dayName = dayNames[new Date(item.date).getDay()];
+      html += `<tr><td style="font-family:monospace;">${item.date}</td><td style="font-size:.7rem;color:var(--sm);">${dayName}</td><td>${item.rec.type==='work'?'💼 Work':item.rec.type==='sunday'?'☀️ Sunday':'😴 Off'}</td><td>${item.rec.ot?item.rec.ot+'h':'-'}</td><td style="color:var(--green);">${earn?`Rs.${earn.toLocaleString()}`:'-'}</td><td><button class="del-btn" data-date="${item.date}">✕</button></td></tr>`;
     }
-    
     html += `</tbody></table></div>`;
   }
-  
   document.getElementById('history-grouped-container').innerHTML = html;
-  
-  document.querySelectorAll('.del-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (confirm('Delete this record?')) {
-        await deleteDoc(doc(db, 'attendance', btn.dataset.date));
-        toast('Deleted');
-        renderDashboard();
-        renderHistoryWithGroups();
-        if (currentMonday) loadWeeklyReportForDate(currentMonday);
-      }
-    });
-  });
+  document.querySelectorAll('.del-btn').forEach(btn=>btn.addEventListener('click',async()=>{ if(confirm('Delete?')){ await deleteDoc(doc(db,'attendance',btn.dataset.date)); toast('Deleted'); renderDashboard(); renderHistoryWithGroups(); if(currentMonday) loadWeeklyReportForDate(currentMonday); } }));
 }
-
-function populateMonthFilter() {
+function populateMonthFilter(){
   let sel = document.getElementById('hist-filter');
   let now = new Date();
   sel.innerHTML = '<option value="all">📅 All Time</option>';
-  for (let i = 0; i < 13; i++) {
-    let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    let val = d.toISOString().slice(0,7);
-    let lbl = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-    let opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = lbl;
-    sel.appendChild(opt);
-  }
+  for(let i=0;i<13;i++){ let d=new Date(now.getFullYear(),now.getMonth()-i,1); let opt=document.createElement('option'); opt.value=d.toISOString().slice(0,7); opt.textContent=d.toLocaleString('default',{month:'long',year:'numeric'}); sel.appendChild(opt); }
 }
-
 document.getElementById('hist-filter').addEventListener('change', renderHistoryWithGroups);
 </script>
 </body>
-</html>
+                                                                                                                                                                               </html>
